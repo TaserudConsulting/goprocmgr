@@ -1,17 +1,23 @@
 package serve
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
+	"github.com/etu/goprocmgr/src/config"
 	"github.com/gorilla/mux"
 )
 
 func Serve() {
 	router := newRouter()
+	config := config.Get(false)
 
-	// TODO: read config somehow to not have a static port.
-	log.Fatal(http.ListenAndServe(":6969", router))
+	// Listen to configured address and port.
+	log.Fatal(http.ListenAndServe(
+		fmt.Sprintf("%s:%d", config.Settings.ListenAddress, config.Settings.ListenPort),
+		router,
+	))
 }
 
 func newRouter() *mux.Router {
