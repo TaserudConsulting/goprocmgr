@@ -1,0 +1,5 @@
+# Ignore build output
+goprocmgr
+
+# Ignore nix outputs
+result*
