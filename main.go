@@ -3,6 +3,8 @@ package main // import "github.com/etu/goprocmgr"
 import (
 	"fmt"
 	"os"
+
+	"github.com/etu/goprocmgr/src/commands/serve"
 )
 
 func main() {
@@ -18,6 +20,9 @@ func main() {
 	}
 
 	switch os.Args[1] {
+	case "serve":
+		serve.Serve()
+
 	default:
 		fmt.Fprintln(os.Stderr, "Argument \""+os.Args[1]+"\" not implemented")
 		os.Exit(2)
