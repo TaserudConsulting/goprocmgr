@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/etu/goprocmgr/src/config"
 	"github.com/gorilla/mux"
 )
 
@@ -14,7 +13,7 @@ type Serve struct{}
 
 func (serve *Serve) Run() {
 	router := serve.newRouter()
-	config := config.Get(false)
+	config := ParseConfig(false)
 
 	fmt.Fprintln(os.Stderr, "Listening on", fmt.Sprintf("http://%s:%d", config.Settings.ListenAddress, config.Settings.ListenPort))
 

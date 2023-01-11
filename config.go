@@ -1,4 +1,4 @@
-package config
+package main // import "github.com/etu/goprocmgr"
 
 import (
 	"encoding/json"
@@ -26,7 +26,7 @@ type ServerConfig struct {
 var parsedConfig Config
 var configIsParsed bool = false
 
-func Get(forceRead bool) Config {
+func ParseConfig(forceRead bool) Config {
 	// If we're force-reading the config or if it haven't been parsed,
 	// then we should read it.
 	if forceRead == true || configIsParsed == false {
