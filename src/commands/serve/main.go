@@ -14,7 +14,7 @@ func Serve() {
 	router := newRouter()
 	config := config.Get(false)
 
-	fmt.Fprintln(os.Stderr, "Listening on", fmt.Sprintf("%s:%d", config.Settings.ListenAddress, config.Settings.ListenPort))
+	fmt.Fprintln(os.Stderr, "Listening on", fmt.Sprintf("http://%s:%d", config.Settings.ListenAddress, config.Settings.ListenPort))
 
 	// Listen to configured address and port.
 	log.Fatal(http.ListenAndServe(
