@@ -2,8 +2,6 @@ package main // import "github.com/etu/goprocmgr"
 
 import (
 	"flag"
-
-	"github.com/etu/goprocmgr/src/commands/serve"
 )
 
 func main() {
@@ -14,6 +12,8 @@ func main() {
 
 	switch true {
 	case serveFlag:
-		serve.Serve()
+		var serve Serve
+
+		serve.Run()
 	}
 }

@@ -1,4 +1,4 @@
-package serve
+package main // import "github.com/etu/goprocmgr"
 
 import (
 	"fmt"
@@ -10,8 +10,10 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func Serve() {
-	router := newRouter()
+type Serve struct{}
+
+func (serve *Serve) Run() {
+	router := serve.newRouter()
 	config := config.Get(false)
 
 	fmt.Fprintln(os.Stderr, "Listening on", fmt.Sprintf("http://%s:%d", config.Settings.ListenAddress, config.Settings.ListenPort))
@@ -23,7 +25,7 @@ func Serve() {
 	))
 }
 
-func newRouter() *mux.Router {
+func (serve *Serve) newRouter() *mux.Router {
 	router := mux.NewRouter().StrictSlash(true)
 
 	// Web server endpoints
