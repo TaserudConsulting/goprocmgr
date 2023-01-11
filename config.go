@@ -8,19 +8,15 @@ import (
 )
 
 type Config struct {
-	Settings SettingsConfig `json:"settings"`
-	Servers  []ServerConfig `json:"servers"`
-}
-
-type SettingsConfig struct {
-	ListenAddress string `json:"listen_address"`
-	ListenPort    uint   `json:"listen_port"`
-}
-
-type ServerConfig struct {
-	Directory   string            `json:"cwd"`
-	Command     string            `json:"cmd"`
-	Environment map[string]string `json:"environment"`
+	Settings struct {
+		ListenAddress string `json:"listen_address"`
+		ListenPort    uint   `json:"listen_port"`
+	} `json:"settings"`
+	Servers []struct {
+		Directory   string            `json:"cwd"`
+		Command     string            `json:"cmd"`
+		Environment map[string]string `json:"environment"`
+	} `json:"servers"`
 }
 
 var parsedConfig Config
@@ -31,12 +27,9 @@ func ParseConfig(forceRead bool) Config {
 	// then we should read it.
 	if forceRead == true || configIsParsed == false {
 		// Set up default config struct.
-		parsedConfig = Config{
-			Settings: SettingsConfig{
-				ListenAddress: "127.0.0.1",
-				ListenPort:    6969,
-			},
-		}
+		parsedConfig = Config{}
+		parsedConfig.Settings.ListenAddress = "127.0.0.1"
+		parsedConfig.Settings.ListenPort = 6969
 
 		// Write a default config file if it's missing.
 		if _, err := os.Stat(configFileName()); err != nil {
