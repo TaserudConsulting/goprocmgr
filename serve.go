@@ -11,9 +11,8 @@ import (
 
 type Serve struct{}
 
-func (serve *Serve) Run() {
-	router := serve.newRouter()
-	config := ParseConfig(false)
+func (serve *Serve) Run(config *Config) {
+	router := serve.newRouter(config)
 
 	fmt.Fprintln(os.Stderr, "Listening on", fmt.Sprintf("http://%s:%d", config.Settings.ListenAddress, config.Settings.ListenPort))
 
@@ -24,7 +23,7 @@ func (serve *Serve) Run() {
 	))
 }
 
-func (serve *Serve) newRouter() *mux.Router {
+func (serve *Serve) newRouter(config *Config) *mux.Router {
 	router := mux.NewRouter().StrictSlash(true)
 
 	// Web server endpoints

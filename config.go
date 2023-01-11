@@ -19,35 +19,29 @@ type Config struct {
 	} `json:"servers"`
 }
 
-var parsedConfig Config
-var configIsParsed bool = false
+func ParseConfig(configFileName string) Config {
+	var parsedConfig Config
 
-func ParseConfig(forceRead bool) Config {
-	// If we're force-reading the config or if it haven't been parsed,
-	// then we should read it.
-	if forceRead == true || configIsParsed == false {
-		// Set up default config struct.
-		parsedConfig = Config{}
-		parsedConfig.Settings.ListenAddress = "127.0.0.1"
-		parsedConfig.Settings.ListenPort = 6969
+	// Set up default config struct.
+	parsedConfig.Settings.ListenAddress = "127.0.0.1"
+	parsedConfig.Settings.ListenPort = 6969
 
-		// Write a default config file if it's missing.
-		if _, err := os.Stat(GetConfigFileName("")); err != nil {
-			log.Println("Creating default configuration file at " + GetConfigFileName(""))
+	// Write a default config file if it's missing.
+	if _, err := os.Stat(GetConfigFileName(configFileName)); err != nil {
+		log.Println("Creating default configuration file at " + GetConfigFileName(configFileName))
 
-			encodedFile, _ := json.MarshalIndent(parsedConfig, "", " ")
-			_ = ioutil.WriteFile(GetConfigFileName(""), encodedFile, 0640)
-		}
-
-		// Read the config file
-		fileContent, err := ioutil.ReadFile(GetConfigFileName(""))
-		if err != nil {
-			log.Fatalf("File read error: %v", err)
-		}
-
-		// Parse config
-		json.Unmarshal(fileContent, &parsedConfig)
+		encodedFile, _ := json.MarshalIndent(parsedConfig, "", " ")
+		_ = ioutil.WriteFile(GetConfigFileName(configFileName), encodedFile, 0640)
 	}
+
+	// Read the config file
+	fileContent, err := ioutil.ReadFile(GetConfigFileName(configFileName))
+	if err != nil {
+		log.Fatalf("File read error: %v", err)
+	}
+
+	// Parse config
+	json.Unmarshal(fileContent, &parsedConfig)
 
 	return parsedConfig
 }
