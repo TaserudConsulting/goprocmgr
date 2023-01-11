@@ -1,30 +1,19 @@
 package main // import "github.com/etu/goprocmgr"
 
 import (
-	"fmt"
-	"os"
+	"flag"
 
 	"github.com/etu/goprocmgr/src/commands/serve"
 )
 
 func main() {
-	if len(os.Args) < 2 {
-		fmt.Fprintln(
-			os.Stderr,
-			"Missing required first argument to know what to do\n"+
-				"run the following command to get help:\n"+
-				"$ "+os.Args[0]+" help",
-		)
+	var serveFlag bool
 
-		os.Exit(1)
-	}
+	flag.BoolVar(&serveFlag, "serve", false, "Run the serve command")
+	flag.Parse()
 
-	switch os.Args[1] {
-	case "serve":
+	switch true {
+	case serveFlag:
 		serve.Serve()
-
-	default:
-		fmt.Fprintln(os.Stderr, "Argument \""+os.Args[1]+"\" not implemented")
-		os.Exit(2)
 	}
 }
