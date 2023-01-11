@@ -32,15 +32,15 @@ func ParseConfig(forceRead bool) Config {
 		parsedConfig.Settings.ListenPort = 6969
 
 		// Write a default config file if it's missing.
-		if _, err := os.Stat(configFileName()); err != nil {
-			log.Println("Creating default configuration file at " + configFileName())
+		if _, err := os.Stat(GetConfigFileName("")); err != nil {
+			log.Println("Creating default configuration file at " + GetConfigFileName(""))
 
 			encodedFile, _ := json.MarshalIndent(parsedConfig, "", " ")
-			_ = ioutil.WriteFile(configFileName(), encodedFile, 0640)
+			_ = ioutil.WriteFile(GetConfigFileName(""), encodedFile, 0640)
 		}
 
 		// Read the config file
-		fileContent, err := ioutil.ReadFile(configFileName())
+		fileContent, err := ioutil.ReadFile(GetConfigFileName(""))
 		if err != nil {
 			log.Fatalf("File read error: %v", err)
 		}
@@ -52,7 +52,11 @@ func ParseConfig(forceRead bool) Config {
 	return parsedConfig
 }
 
-func configFileName() string {
+func GetConfigFileName(fileName string) string {
+	if len(fileName) > 0 {
+		return fileName
+	}
+
 	if os.Getenv("XDG_CONFIG_DIR") != "" {
 		return os.Getenv("XDG_CONFIG_DIR") + "/goprocmgr.json"
 	}
