@@ -19,18 +19,16 @@ type Config struct {
 	} `json:"servers"`
 }
 
-func ParseConfig(configFileName string) Config {
-	var parsedConfig Config
-
+func (config *Config) Read(configFileName string) {
 	// Set up default config struct.
-	parsedConfig.Settings.ListenAddress = "127.0.0.1"
-	parsedConfig.Settings.ListenPort = 6969
+	config.Settings.ListenAddress = "127.0.0.1"
+	config.Settings.ListenPort = 6969
 
 	// Write a default config file if it's missing.
 	if _, err := os.Stat(GetConfigFileName(configFileName)); err != nil {
 		log.Println("Creating default configuration file at " + GetConfigFileName(configFileName))
 
-		encodedFile, _ := json.MarshalIndent(parsedConfig, "", " ")
+		encodedFile, _ := json.MarshalIndent(config, "", " ")
 		_ = ioutil.WriteFile(GetConfigFileName(configFileName), encodedFile, 0640)
 	}
 
@@ -41,9 +39,7 @@ func ParseConfig(configFileName string) Config {
 	}
 
 	// Parse config
-	json.Unmarshal(fileContent, &parsedConfig)
-
-	return parsedConfig
+	json.Unmarshal(fileContent, &config)
 }
 
 func GetConfigFileName(fileName string) string {
