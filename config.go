@@ -14,11 +14,14 @@ type Config struct {
 		ListenAddress string `json:"listen_address"`
 		ListenPort    uint   `json:"listen_port"`
 	} `json:"settings"`
-	Servers []struct {
-		Directory   string            `json:"cwd"`
-		Command     string            `json:"cmd"`
-		Environment map[string]string `json:"environment"`
-	} `json:"servers"`
+	Servers map[string]ServerConfig `json:"servers"`
+}
+
+type ServerConfig struct {
+	Name        string            `json:"name"`
+	Directory   string            `json:"cwd"`
+	Command     string            `json:"cmd"`
+	Environment map[string]string `json:"env"`
 }
 
 func (config *Config) Read(configFileName string) {
@@ -28,6 +31,11 @@ func (config *Config) Read(configFileName string) {
 	// Set up default config struct.
 	config.Settings.ListenAddress = "127.0.0.1"
 	config.Settings.ListenPort = 6969
+
+	// Init servers map
+	if config.Servers == nil {
+		config.Servers = make(map[string]ServerConfig)
+	}
 
 	if _, err := os.Stat(config.configFileName); err == nil {
 		// Read the config file

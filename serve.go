@@ -48,5 +48,29 @@ func (serve *Serve) newRouter() *mux.Router {
 		json.NewEncoder(w).Encode(serve.config)
 	}).Methods("GET")
 
+	router.HandleFunc("/api/config/server", func(w http.ResponseWriter, r *http.Request) {
+		var server ServerConfig
+		resp := make(map[string]string)
+
+		decoder := json.NewDecoder(r.Body)
+		err := decoder.Decode(&server)
+
+		if err != nil {
+			w.WriteHeader(400)
+			resp["message"] = fmt.Sprintf("%s", err)
+		} else {
+			resp["message"] = "OK"
+
+			// Store the sent server config to the config.
+			serve.config.Servers[server.Name] = server
+
+			// Save the config to disk.
+			serve.config.Save()
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(resp)
+	}).Methods("POST")
+
 	return router
 }
