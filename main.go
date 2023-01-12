@@ -9,7 +9,7 @@ func main() {
 	var config Config
 	var serveFlag bool
 
-	flag.StringVar(&configFile, "config", GetConfigFileName(""), "Specify config file")
+	flag.StringVar(&configFile, "config", config.GuessFileName(""), "Specify config file")
 	flag.BoolVar(&serveFlag, "serve", false, "Run the serve command")
 	flag.Parse()
 

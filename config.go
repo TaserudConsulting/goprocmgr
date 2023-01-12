@@ -8,6 +8,8 @@ import (
 )
 
 type Config struct {
+	configFileName string
+
 	Settings struct {
 		ListenAddress string `json:"listen_address"`
 		ListenPort    uint   `json:"listen_port"`
@@ -20,29 +22,38 @@ type Config struct {
 }
 
 func (config *Config) Read(configFileName string) {
+	// Store the config file name
+	config.configFileName = configFileName
+
 	// Set up default config struct.
 	config.Settings.ListenAddress = "127.0.0.1"
 	config.Settings.ListenPort = 6969
 
-	// Write a default config file if it's missing.
-	if _, err := os.Stat(GetConfigFileName(configFileName)); err != nil {
-		log.Println("Creating default configuration file at " + GetConfigFileName(configFileName))
+	if _, err := os.Stat(config.configFileName); err == nil {
+		// Read the config file
+		fileContent, err := ioutil.ReadFile(config.configFileName)
 
-		encodedFile, _ := json.MarshalIndent(config, "", " ")
-		_ = ioutil.WriteFile(GetConfigFileName(configFileName), encodedFile, 0640)
+		if err != nil {
+			log.Fatalf("File read error: %v", err)
+		} else {
+			log.Printf("Parsed config file: %s\n", config.configFileName)
+		}
+
+		// Parse config
+		json.Unmarshal(fileContent, &config)
+	} else {
+		log.Printf("Using default values as config will store config in %s if any changes are made\n", config.configFileName)
 	}
-
-	// Read the config file
-	fileContent, err := ioutil.ReadFile(GetConfigFileName(configFileName))
-	if err != nil {
-		log.Fatalf("File read error: %v", err)
-	}
-
-	// Parse config
-	json.Unmarshal(fileContent, &config)
 }
 
-func GetConfigFileName(fileName string) string {
+func (config *Config) Save() {
+	log.Printf("Writing configuration file at %s\n", config.configFileName)
+
+	encodedFile, _ := json.MarshalIndent(config, "", "    ")
+	_ = ioutil.WriteFile(config.configFileName, encodedFile, 0640)
+}
+
+func (config *Config) GuessFileName(fileName string) string {
 	if len(fileName) > 0 {
 		return fileName
 	}
