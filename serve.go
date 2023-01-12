@@ -9,21 +9,25 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type Serve struct{}
+type Serve struct {
+	config *Config
+}
 
 func (serve *Serve) Run(config *Config) {
-	router := serve.newRouter(config)
+	serve.config = config
 
-	fmt.Fprintln(os.Stderr, "Listening on", fmt.Sprintf("http://%s:%d", config.Settings.ListenAddress, config.Settings.ListenPort))
+	router := serve.newRouter()
+
+	fmt.Fprintln(os.Stderr, "Listening on", fmt.Sprintf("http://%s:%d", serve.config.Settings.ListenAddress, serve.config.Settings.ListenPort))
 
 	// Listen to configured address and port.
 	log.Fatal(http.ListenAndServe(
-		fmt.Sprintf("%s:%d", config.Settings.ListenAddress, config.Settings.ListenPort),
+		fmt.Sprintf("%s:%d", serve.config.Settings.ListenAddress, serve.config.Settings.ListenPort),
 		router,
 	))
 }
 
-func (serve *Serve) newRouter(config *Config) *mux.Router {
+func (serve *Serve) newRouter() *mux.Router {
 	router := mux.NewRouter().StrictSlash(true)
 
 	// Web server endpoints
