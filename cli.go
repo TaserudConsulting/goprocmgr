@@ -46,10 +46,10 @@ func (cli *Cli) List() {
 
 	output := table.NewWriter()
 	output.SetOutputMirror(os.Stdout)
-	output.AppendHeader(table.Row{"Name", "Directory", "Command", "Environment"})
+	output.AppendHeader(table.Row{"Name", "Directory", "Command"})
 
 	for _, val := range config.Servers {
-		output.AppendRow([]interface{}{val.Name, val.Directory, val.Command, val.Environment})
+		output.AppendRow([]interface{}{val.Name, val.Directory, val.Command})
 	}
 
 	output.Render()
