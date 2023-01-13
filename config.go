@@ -84,6 +84,13 @@ func (config *Config) WriteServer(server ServerConfig) error {
 	return nil
 }
 
+func (config *Config) DeleteServer(serverName string) {
+	if _, ok := config.Servers[serverName]; ok {
+		delete(config.Servers, serverName)
+		config.Save()
+	}
+}
+
 func (config *Config) GuessFileName(fileName string) string {
 	if len(fileName) > 0 {
 		return fileName

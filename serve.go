@@ -44,7 +44,7 @@ func (serve *Serve) newRouter() *mux.Router {
 	router.HandleFunc("/api/config", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(serve.config)
-	}).Methods("GET")
+	}).Methods(http.MethodGet)
 
 	router.HandleFunc("/api/config/server", func(w http.ResponseWriter, r *http.Request) {
 		var server ServerConfig
@@ -66,7 +66,20 @@ func (serve *Serve) newRouter() *mux.Router {
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(resp)
-	}).Methods("POST")
+	}).Methods(http.MethodPost)
+
+	router.HandleFunc("/api/config/server/{name}", func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+
+		serve.config.DeleteServer(vars["name"])
+
+		resp := make(map[string]string)
+		resp["message"] = "OK"
+
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(resp)
+	}).Methods(http.MethodDelete)
 
 	return router
 }

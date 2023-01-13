@@ -79,8 +79,8 @@ func (cli *Cli) Add(command string) {
 	// Encode the server config as bytes
 	body, _ := json.Marshal(server)
 
-	//Pass new buffer for request with URL to post.
-	//This will make a post request and will share the JSON data
+	// Pass new buffer for request with URL to post.
+	// This will make a post request and will share the JSON data
 	res, err := http.Post(requestUrl, "application/json", bytes.NewBuffer(body))
 
 	// An error is returned if something goes wrong
@@ -88,11 +88,11 @@ func (cli *Cli) Add(command string) {
 		panic(err)
 	}
 
-	//Need to close the response stream, once response is read.
-	//Hence defer close. It will automatically take care of it.
+	// Need to close the response stream, once response is read.
+	// Hence defer close. It will automatically take care of it.
 	defer res.Body.Close()
 
-	//Check response code, if New user is created then read response.
+	// Check response code, if New user is created then read response.
 	if res.StatusCode == http.StatusCreated {
 		log.Println("Created")
 	} else {
@@ -102,7 +102,45 @@ func (cli *Cli) Add(command string) {
 		// Parse the json
 		json.Unmarshal(resbody, &response)
 
-		//The status is not Created. print the error.
+		// The status is not Created. print the error.
 		log.Printf("Failed to create server with response: %s", resbody)
 	}
+}
+
+func (cli *Cli) Remove(name string) {
+	// Build URL based on config to post to
+	requestUrl := fmt.Sprintf("http://%s:%d/api/config/server/%s", cli.config.Settings.ListenAddress, cli.config.Settings.ListenPort, name)
+
+	// Create client
+	client := &http.Client{}
+
+	// Create request
+	req, err := http.NewRequest(http.MethodDelete, requestUrl, nil)
+
+	if err != nil {
+		panic(err)
+	}
+
+	// Perform request
+	res, err := client.Do(req)
+
+	if err != nil {
+		panic(err)
+	}
+
+	if res.StatusCode == http.StatusOK {
+		log.Println("OK")
+		os.Exit(0)
+	}
+
+	// Handle error
+	var response map[string]string
+	resbody, _ := ioutil.ReadAll(res.Body)
+
+	// Parse the json
+	json.Unmarshal(resbody, &response)
+
+	// The status is not Created. print the error.
+	log.Printf("Failed to create server with response: %s", resbody)
+	os.Exit(4)
 }
