@@ -13,9 +13,7 @@ type Serve struct {
 	config *Config
 }
 
-func (serve *Serve) Run(config *Config) {
-	serve.config = config
-
+func (serve *Serve) Run() {
 	router := serve.newRouter()
 
 	log.Printf("Listening on http://%s:%d\n", serve.config.Settings.ListenAddress, serve.config.Settings.ListenPort)

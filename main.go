@@ -5,9 +5,11 @@ import (
 )
 
 func main() {
-	var configFile string
 	var config Config
+	var configFile string
 	var serveFlag bool
+
+	serve := Serve{config: &config}
 
 	flag.StringVar(&configFile, "config", config.GuessFileName(""), "Specify config file")
 	flag.BoolVar(&serveFlag, "serve", false, "Run the serve command")
@@ -17,8 +19,6 @@ func main() {
 
 	switch true {
 	case serveFlag:
-		var serve Serve
-
-		serve.Run(&config)
+		serve.Run()
 	}
 }
