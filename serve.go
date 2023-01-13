@@ -54,12 +54,13 @@ func (serve *Serve) newRouter() *mux.Router {
 		err := decoder.Decode(&server)
 
 		if err != nil {
-			w.WriteHeader(400)
+			w.WriteHeader(http.StatusBadRequest)
 			resp["message"] = fmt.Sprintf("%s", err)
 		} else if err := serve.config.WriteServer(server); err != nil {
-			w.WriteHeader(400)
+			w.WriteHeader(http.StatusBadRequest)
 			resp["message"] = fmt.Sprintf("%s", err)
 		} else {
+			w.WriteHeader(http.StatusCreated)
 			resp["message"] = "OK"
 		}
 

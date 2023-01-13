@@ -1,12 +1,14 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/jedib0t/go-pretty/v6/table"
 )
@@ -51,4 +53,56 @@ func (cli *Cli) List() {
 	}
 
 	output.Render()
+}
+
+func (cli *Cli) Add(command string) {
+	// Build URL based on config to post to
+	requestUrl := fmt.Sprintf("http://%s:%d/api/config/server", cli.config.Settings.ListenAddress, cli.config.Settings.ListenPort)
+
+	directory, err := os.Getwd()
+
+	if err != nil {
+		log.Printf("Failed to get current working directory: %s\n", err)
+		os.Exit(3)
+	}
+
+	// Build a new server config
+	server := ServerConfig{
+		Name:      filepath.Base(directory),
+		Command:   command,
+		Directory: directory,
+		Environment: map[string]string{
+			"PATH": os.Getenv("PATH"),
+		},
+	}
+
+	// Encode the server config as bytes
+	body, _ := json.Marshal(server)
+
+	//Pass new buffer for request with URL to post.
+	//This will make a post request and will share the JSON data
+	res, err := http.Post(requestUrl, "application/json", bytes.NewBuffer(body))
+
+	// An error is returned if something goes wrong
+	if err != nil {
+		panic(err)
+	}
+
+	//Need to close the response stream, once response is read.
+	//Hence defer close. It will automatically take care of it.
+	defer res.Body.Close()
+
+	//Check response code, if New user is created then read response.
+	if res.StatusCode == http.StatusCreated {
+		log.Println("Created")
+	} else {
+		var response map[string]string
+		resbody, _ := ioutil.ReadAll(res.Body)
+
+		// Parse the json
+		json.Unmarshal(resbody, &response)
+
+		//The status is not Created. print the error.
+		log.Printf("Failed to create server with response: %s", resbody)
+	}
 }
