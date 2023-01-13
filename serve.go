@@ -58,14 +58,11 @@ func (serve *Serve) newRouter() *mux.Router {
 		if err != nil {
 			w.WriteHeader(400)
 			resp["message"] = fmt.Sprintf("%s", err)
+		} else if err := serve.config.WriteServer(server); err != nil {
+			w.WriteHeader(400)
+			resp["message"] = fmt.Sprintf("%s", err)
 		} else {
 			resp["message"] = "OK"
-
-			// Store the sent server config to the config.
-			serve.config.Servers[server.Name] = server
-
-			// Save the config to disk.
-			serve.config.Save()
 		}
 
 		w.Header().Set("Content-Type", "application/json")

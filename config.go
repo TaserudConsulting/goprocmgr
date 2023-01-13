@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -59,6 +60,28 @@ func (config *Config) Save() {
 
 	encodedFile, _ := json.MarshalIndent(config, "", "    ")
 	_ = ioutil.WriteFile(config.configFileName, encodedFile, 0640)
+}
+
+func (config *Config) WriteServer(server ServerConfig) error {
+	if len(server.Name) == 0 {
+		return fmt.Errorf("Server 'name' cannot be empty")
+	}
+
+	if len(server.Directory) == 0 {
+		return fmt.Errorf("Server 'cwd' cannot be empty")
+	}
+
+	if len(server.Command) == 0 {
+		return fmt.Errorf("Server 'cmd' cannot be empty")
+	}
+
+	// Store the sent server config to the config.
+	config.Servers[server.Name] = server
+
+	// Save the config to disk.
+	config.Save()
+
+	return nil
 }
 
 func (config *Config) GuessFileName(fileName string) string {
