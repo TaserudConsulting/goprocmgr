@@ -172,3 +172,41 @@ func (cli *Cli) Start(name string) {
 		log.Printf("Failed to start server with response: %s", resbody)
 	}
 }
+
+func (cli *Cli) Stop(name string) {
+	// Build URL based on config to post to
+	requestUrl := fmt.Sprintf("http://%s:%d/api/runner/%s", cli.config.Settings.ListenAddress, cli.config.Settings.ListenPort, name)
+
+	// Create client
+	client := &http.Client{}
+
+	// Create request
+	req, err := http.NewRequest(http.MethodDelete, requestUrl, nil)
+
+	if err != nil {
+		panic(err)
+	}
+
+	// Perform request
+	res, err := client.Do(req)
+
+	if err != nil {
+		panic(err)
+	}
+
+	if res.StatusCode == http.StatusOK {
+		log.Println("OK")
+		os.Exit(0)
+	}
+
+	// Handle error
+	var response map[string]string
+	resbody, _ := ioutil.ReadAll(res.Body)
+
+	// Parse the json
+	json.Unmarshal(resbody, &response)
+
+	// The status is not Created. print the error.
+	log.Printf("Failed to stop server with response: %s", resbody)
+	os.Exit(4)
+}
