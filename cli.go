@@ -144,3 +144,31 @@ func (cli *Cli) Remove(name string) {
 	log.Printf("Failed to create server with response: %s", resbody)
 	os.Exit(4)
 }
+
+func (cli *Cli) Start(name string) {
+	// Build URL based on config to post to
+	requestUrl := fmt.Sprintf("http://%s:%d/api/runner/%s", cli.config.Settings.ListenAddress, cli.config.Settings.ListenPort, name)
+
+	// Pass new buffer for request with URL to post.
+	// This will make a post request and will share the JSON data
+	res, err := http.Post(requestUrl, "application/json", nil)
+
+	// An error is returned if something goes wrong
+	if err != nil {
+		panic(err)
+	}
+
+	// Check response code, if New user is created then read response.
+	if res.StatusCode == http.StatusCreated {
+		log.Println("Started")
+	} else {
+		var response map[string]string
+		resbody, _ := ioutil.ReadAll(res.Body)
+
+		// Parse the json
+		json.Unmarshal(resbody, &response)
+
+		// The status is not Created. print the error.
+		log.Printf("Failed to start server with response: %s", resbody)
+	}
+}

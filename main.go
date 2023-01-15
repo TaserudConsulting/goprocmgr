@@ -11,6 +11,7 @@ func main() {
 	var listFlag bool
 	var serveFlag bool
 	var removeFlag string
+	var startFlag string
 
 	runner := Runner{config: &config}
 	serve := Serve{config: &config, runner: &runner}
@@ -21,6 +22,7 @@ func main() {
 	flag.BoolVar(&listFlag, "list", false, "List the stored servers")
 	flag.StringVar(&addFlag, "add", "", "Add a new server, will capture the current directory and environment and then takes the command as an argument")
 	flag.StringVar(&removeFlag, "remove", "", "Remove an existing server by it's name")
+	flag.StringVar(&startFlag, "start", "", "Start an existing server by it's name")
 	flag.Parse()
 
 	config.Read(configFile)
@@ -37,5 +39,8 @@ func main() {
 
 	case len(removeFlag) > 0:
 		cli.Remove(removeFlag)
+
+	case len(startFlag) > 0:
+		cli.Start(startFlag)
 	}
 }
