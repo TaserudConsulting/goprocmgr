@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os/exec"
 	"strings"
+	"syscall"
 )
 
 type Runner struct {
@@ -85,6 +86,29 @@ func (runner *Runner) Start(name string) error {
 
 	// Store the Cmd process as an active process
 	runner.ActiveProcesses[name] = &activeRunner
+
+	return nil
+}
+
+func (runner *Runner) Stop(name string) error {
+	// Init active processes map
+	if runner.ActiveProcesses == nil {
+		runner.ActiveProcesses = make(map[string]*ActiveRunner)
+	}
+
+	// If server isn't running, just abort.
+	if _, ok := runner.ActiveProcesses[name]; !ok {
+		return nil
+	}
+
+	// Send SIGTERM to the process
+	runner.ActiveProcesses[name].Cmd.Process.Signal(syscall.SIGTERM)
+
+	// Wait for process to end
+	runner.ActiveProcesses[name].Cmd.Wait()
+
+	// Delete old status for process
+	delete(runner.ActiveProcesses, name)
 
 	return nil
 }

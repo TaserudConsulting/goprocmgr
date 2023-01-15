@@ -100,5 +100,23 @@ func (serve *Serve) newRouter() *mux.Router {
 		json.NewEncoder(w).Encode(resp)
 	}).Methods(http.MethodPost)
 
+	router.HandleFunc("/api/runner/{name}", func(w http.ResponseWriter, r *http.Request) {
+		resp := make(map[string]string)
+		vars := mux.Vars(r)
+
+		err := serve.runner.Stop(vars["name"])
+
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			resp["message"] = fmt.Sprintf("Failed to stop server %s, %s", vars["name"], err)
+		} else {
+			w.WriteHeader(http.StatusOK)
+			resp["message"] = "OK"
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(resp)
+	}).Methods(http.MethodDelete)
+
 	return router
 }
