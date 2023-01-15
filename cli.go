@@ -32,7 +32,7 @@ func (cli *Cli) List() {
 	}
 
 	// Validate status code
-	if res.StatusCode != 200 {
+	if res.StatusCode != http.StatusOK {
 		log.Printf("Unexpected status code when fetching active config: %d\n", res.StatusCode)
 		os.Exit(2)
 	}
