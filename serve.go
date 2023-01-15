@@ -91,6 +91,29 @@ func (serve *Serve) newRouter() *mux.Router {
 		json.NewEncoder(w).Encode(resp)
 	}).Methods(http.MethodDelete)
 
+	router.HandleFunc("/api/runner", func(w http.ResponseWriter, r *http.Request) {
+		resp := make(map[string]struct {
+			Name   string   `json:"name"`
+			Stdout []string `json:"stdout"`
+			Stderr []string `json:"stderr"`
+		})
+
+		for key, value := range serve.runner.ActiveProcesses {
+			resp[key] = struct {
+				Name   string   `json:"name"`
+				Stdout []string `json:"stdout"`
+				Stderr []string `json:"stderr"`
+			}{
+				Name:   key,
+				Stdout: value.Stdout,
+				Stderr: value.Stderr,
+			}
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(resp)
+	}).Methods(http.MethodGet)
+
 	router.HandleFunc("/api/runner/{name}", func(w http.ResponseWriter, r *http.Request) {
 		resp := make(map[string]string)
 		vars := mux.Vars(r)
