@@ -18,6 +18,12 @@ type ServeMessageResponse struct {
 	Message string `json:"message"`
 }
 
+type ServeRunnerResponseItem struct {
+	Name   string   `json:"name"`
+	Stdout []string `json:"stdout"`
+	Stderr []string `json:"stderr"`
+}
+
 func (serve *Serve) Run() {
 	router := serve.newRouter()
 
@@ -96,18 +102,10 @@ func (serve *Serve) newRouter() *mux.Router {
 	}).Methods(http.MethodDelete)
 
 	router.HandleFunc("/api/runner", func(w http.ResponseWriter, r *http.Request) {
-		resp := make(map[string]struct {
-			Name   string   `json:"name"`
-			Stdout []string `json:"stdout"`
-			Stderr []string `json:"stderr"`
-		})
+		resp := make(map[string]ServeRunnerResponseItem)
 
 		for key, value := range serve.runner.ActiveProcesses {
-			resp[key] = struct {
-				Name   string   `json:"name"`
-				Stdout []string `json:"stdout"`
-				Stderr []string `json:"stderr"`
-			}{
+			resp[key] = ServeRunnerResponseItem{
 				Name:   key,
 				Stdout: value.Stdout,
 				Stderr: value.Stderr,
