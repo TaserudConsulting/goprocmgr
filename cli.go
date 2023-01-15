@@ -19,6 +19,7 @@ type Cli struct {
 
 func (cli *Cli) List() {
 	var config Config
+	var runners map[string]ServeRunnerResponseItem
 
 	// Build URL based on config
 	requestUrl := fmt.Sprintf("http://%s:%d/api/config", cli.config.Settings.ListenAddress, cli.config.Settings.ListenPort)
@@ -44,12 +45,42 @@ func (cli *Cli) List() {
 	// Parse the json
 	json.Unmarshal(body, &config)
 
+	// Build URL to fetch runners
+	runnerRequestUrl := fmt.Sprintf("http://%s:%d/api/runner", cli.config.Settings.ListenAddress, cli.config.Settings.ListenPort)
+
+	// Do request to running instance of program to get running processes
+	runnerRes, err := http.Get(runnerRequestUrl)
+
+	if err != nil {
+		log.Printf("Failed to connect to running instance of program: %s\n", err)
+		os.Exit(1)
+	}
+
+	// Validate status code
+	if runnerRes.StatusCode != http.StatusOK {
+		log.Printf("Unexpected status code when fetching runner processes: %d\n", runnerRes.StatusCode)
+		os.Exit(2)
+	}
+
+	// Read the body content
+	defer runnerRes.Body.Close()
+	runnerBody, _ := ioutil.ReadAll(runnerRes.Body)
+
+	// Parse the json
+	json.Unmarshal(runnerBody, &runners)
+
 	output := table.NewWriter()
 	output.SetOutputMirror(os.Stdout)
-	output.AppendHeader(table.Row{"Name", "Directory", "Command"})
+	output.AppendHeader(table.Row{"Running", "Name", "Directory", "Command"})
 
 	for _, val := range config.Servers {
-		output.AppendRow([]interface{}{val.Name, val.Directory, val.Command})
+		isRunning := false
+
+		if _, ok := runners[val.Name]; ok {
+			isRunning = true
+		}
+
+		output.AppendRow([]interface{}{isRunning, val.Name, val.Directory, val.Command})
 	}
 
 	output.Render()
