@@ -71,13 +71,19 @@ func (serve *Serve) newRouter() *mux.Router {
 
 	router.HandleFunc("/api/config/server/{name}", func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-
-		serve.config.DeleteServer(vars["name"])
-
 		resp := make(map[string]string)
-		resp["message"] = "OK"
 
-		w.WriteHeader(http.StatusOK)
+		err := serve.runner.Stop(vars["name"])
+
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			resp["message"] = fmt.Sprintf("Failed to stop running server %s: %s", vars["name"], err)
+		} else {
+			w.WriteHeader(http.StatusOK)
+			resp["message"] = "OK"
+			serve.config.DeleteServer(vars["name"])
+		}
+
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(resp)
 	}).Methods(http.MethodDelete)
