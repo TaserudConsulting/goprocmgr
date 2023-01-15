@@ -65,6 +65,9 @@ func (serve *Serve) newRouter() *mux.Router {
 			resp["message"] = "OK"
 		}
 
+		// Stop servers on update in case it's running.
+		serve.runner.Stop(server.Name)
+
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(resp)
 	}).Methods(http.MethodPost)
