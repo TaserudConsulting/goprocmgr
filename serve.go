@@ -14,6 +14,10 @@ type Serve struct {
 	runner *Runner
 }
 
+type ServeMessageResponse struct {
+	Message string `json:"message"`
+}
+
 func (serve *Serve) Run() {
 	router := serve.newRouter()
 
@@ -49,20 +53,20 @@ func (serve *Serve) newRouter() *mux.Router {
 
 	router.HandleFunc("/api/config/server", func(w http.ResponseWriter, r *http.Request) {
 		var server ServerConfig
-		resp := make(map[string]string)
+		var resp ServeMessageResponse
 
 		decoder := json.NewDecoder(r.Body)
 		err := decoder.Decode(&server)
 
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			resp["message"] = fmt.Sprintf("%s", err)
+			resp.Message = fmt.Sprintf("%s", err)
 		} else if err := serve.config.WriteServer(server); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			resp["message"] = fmt.Sprintf("%s", err)
+			resp.Message = fmt.Sprintf("%s", err)
 		} else {
 			w.WriteHeader(http.StatusCreated)
-			resp["message"] = "OK"
+			resp.Message = "OK"
 		}
 
 		// Stop servers on update in case it's running.
@@ -74,16 +78,16 @@ func (serve *Serve) newRouter() *mux.Router {
 
 	router.HandleFunc("/api/config/server/{name}", func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		resp := make(map[string]string)
+		var resp ServeMessageResponse
 
 		err := serve.runner.Stop(vars["name"])
 
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			resp["message"] = fmt.Sprintf("Failed to stop running server %s: %s", vars["name"], err)
+			resp.Message = fmt.Sprintf("Failed to stop running server %s: %s", vars["name"], err)
 		} else {
 			w.WriteHeader(http.StatusOK)
-			resp["message"] = "OK"
+			resp.Message = "OK"
 			serve.config.DeleteServer(vars["name"])
 		}
 
@@ -115,17 +119,17 @@ func (serve *Serve) newRouter() *mux.Router {
 	}).Methods(http.MethodGet)
 
 	router.HandleFunc("/api/runner/{name}", func(w http.ResponseWriter, r *http.Request) {
-		resp := make(map[string]string)
+		var resp ServeMessageResponse
 		vars := mux.Vars(r)
 
 		err := serve.runner.Start(vars["name"])
 
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			resp["message"] = fmt.Sprintf("Failed to start server %s, %s", vars["name"], err)
+			resp.Message = fmt.Sprintf("Failed to start server %s, %s", vars["name"], err)
 		} else {
 			w.WriteHeader(http.StatusOK)
-			resp["message"] = "OK"
+			resp.Message = "OK"
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -133,17 +137,17 @@ func (serve *Serve) newRouter() *mux.Router {
 	}).Methods(http.MethodPost)
 
 	router.HandleFunc("/api/runner/{name}", func(w http.ResponseWriter, r *http.Request) {
-		resp := make(map[string]string)
+		var resp ServeMessageResponse
 		vars := mux.Vars(r)
 
 		err := serve.runner.Stop(vars["name"])
 
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			resp["message"] = fmt.Sprintf("Failed to stop server %s, %s", vars["name"], err)
+			resp.Message = fmt.Sprintf("Failed to stop server %s, %s", vars["name"], err)
 		} else {
 			w.WriteHeader(http.StatusOK)
-			resp["message"] = "OK"
+			resp.Message = "OK"
 		}
 
 		w.Header().Set("Content-Type", "application/json")
