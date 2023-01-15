@@ -11,6 +11,7 @@ import (
 
 type Serve struct {
 	config *Config
+	runner *Runner
 }
 
 func (serve *Serve) Run() {
@@ -80,6 +81,24 @@ func (serve *Serve) newRouter() *mux.Router {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(resp)
 	}).Methods(http.MethodDelete)
+
+	router.HandleFunc("/api/runner/{name}", func(w http.ResponseWriter, r *http.Request) {
+		resp := make(map[string]string)
+		vars := mux.Vars(r)
+
+		err := serve.runner.Start(vars["name"])
+
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			resp["message"] = fmt.Sprintf("Failed to start server %s, %s", vars["name"], err)
+		} else {
+			w.WriteHeader(http.StatusOK)
+			resp["message"] = "OK"
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(resp)
+	}).Methods(http.MethodPost)
 
 	return router
 }

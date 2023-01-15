@@ -12,7 +12,8 @@ func main() {
 	var serveFlag bool
 	var removeFlag string
 
-	serve := Serve{config: &config}
+	runner := Runner{config: &config}
+	serve := Serve{config: &config, runner: &runner}
 	cli := Cli{config: &config}
 
 	flag.StringVar(&configFile, "config", config.GuessFileName(""), "Specify config file")
