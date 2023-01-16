@@ -3,9 +3,11 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"math/rand"
 	"os/exec"
 	"strings"
 	"syscall"
+	"time"
 )
 
 type Runner struct {
@@ -17,6 +19,7 @@ type ActiveRunner struct {
 	Cmd    *exec.Cmd
 	Stdout []string
 	Stderr []string
+	Port   uint
 }
 
 func (runner *Runner) Start(name string) error {
@@ -50,6 +53,18 @@ func (runner *Runner) Start(name string) error {
 
 	// Specify runtime directory.
 	cmd.Dir = runner.config.Servers[name].Directory
+
+	// Randomize a port to supply as environment variable.
+	port, err := runner.randomizePortNumber()
+	if err != nil {
+		return err
+	}
+
+	// Set environment for running command.
+	cmd.Env = []string{
+		fmt.Sprintf("PORT=%d", port),
+		fmt.Sprintf("PATH=%s", runner.config.Servers[name].Environment["PATH"]),
+	}
 
 	// Set up pipe to read stdout
 	stdout, err := cmd.StdoutPipe()
@@ -88,6 +103,39 @@ func (runner *Runner) Start(name string) error {
 	runner.ActiveProcesses[name] = &activeRunner
 
 	return nil
+}
+
+func (runner *Runner) randomizePortNumber() (uint, error) {
+	portRangeSize := int(runner.config.Settings.PortRangeMax - runner.config.Settings.PortRangeMin)
+
+	if len(runner.ActiveProcesses) >= portRangeSize {
+		return 0, fmt.Errorf("Out of ports, won't be able to find a port in configured range")
+	}
+
+	// Set a changing seed
+	rand.Seed(time.Now().UnixNano())
+
+	// Randomize ports within the range
+	randomPorts := rand.Perm(portRangeSize)
+
+	for _, randomPort := range randomPorts {
+		isPortInUse := false
+
+		randomPort += int(runner.config.Settings.PortRangeMin)
+
+		for _, activeProcess := range runner.ActiveProcesses {
+			if int(activeProcess.Port) == randomPort {
+				isPortInUse = true
+				break
+			}
+		}
+
+		if !isPortInUse {
+			return uint(randomPort), nil
+		}
+	}
+
+	return 0, fmt.Errorf("Tried to randomize an unused port, failed")
 }
 
 func (runner *Runner) Stop(name string) error {
