@@ -126,7 +126,7 @@ func (serve *Serve) newRouter() *mux.Router {
 			w.WriteHeader(http.StatusBadRequest)
 			resp.Message = fmt.Sprintf("Failed to start server %s, %s", vars["name"], err)
 		} else {
-			w.WriteHeader(http.StatusOK)
+			w.WriteHeader(http.StatusCreated)
 			resp.Message = "OK"
 		}
 
