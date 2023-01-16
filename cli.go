@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/jedib0t/go-pretty/v6/table"
 )
@@ -240,4 +241,63 @@ func (cli *Cli) Stop(name string) {
 	// The status is not Created. print the error.
 	log.Printf("Failed to stop server with response: %s", resbody)
 	os.Exit(4)
+}
+
+func (cli *Cli) Logs(name string) {
+	var runners map[string]ServeRunnerResponseItem
+	stdoutMaxIndex := -1
+	stderrMaxIndex := -1
+
+	// Build URL to fetch runners
+	runnerRequestUrl := fmt.Sprintf("http://%s:%d/api/runner", cli.config.Settings.ListenAddress, cli.config.Settings.ListenPort)
+
+	for {
+		// Do request to running instance of program to get running processes
+		runnerRes, err := http.Get(runnerRequestUrl)
+
+		if err != nil {
+			log.Printf("Failed to connect to running instance of program: %s\n", err)
+			os.Exit(1)
+		}
+
+		// Validate status code
+		if runnerRes.StatusCode != http.StatusOK {
+			log.Printf("Unexpected status code when fetching runner processes: %d\n", runnerRes.StatusCode)
+			os.Exit(2)
+		}
+
+		// Read the body content
+		defer runnerRes.Body.Close()
+		runnerBody, _ := ioutil.ReadAll(runnerRes.Body)
+
+		// Parse the json
+		json.Unmarshal(runnerBody, &runners)
+
+		if _, ok := runners[name]; !ok {
+			log.Printf("Process '%s' doesn't seem to be running", name)
+			os.Exit(3)
+		}
+
+		// Tail stdout
+		go func() {
+			for key, val := range runners[name].Stdout {
+				if key > stdoutMaxIndex {
+					fmt.Println("stdout>", val)
+					stdoutMaxIndex = key
+				}
+			}
+		}()
+
+		// Tail stderr
+		go func() {
+			for key, val := range runners[name].Stderr {
+				if key > stderrMaxIndex {
+					fmt.Println("stderr>", val)
+					stderrMaxIndex = key
+				}
+			}
+		}()
+
+		time.Sleep(1 * time.Second)
+	}
 }

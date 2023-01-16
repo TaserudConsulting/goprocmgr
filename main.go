@@ -13,6 +13,7 @@ func main() {
 	var removeFlag string
 	var startFlag string
 	var stopFlag string
+	var logsFlag string
 
 	runner := Runner{config: &config}
 	serve := Serve{config: &config, runner: &runner}
@@ -25,6 +26,7 @@ func main() {
 	flag.StringVar(&removeFlag, "remove", "", "Remove an existing server by it's name")
 	flag.StringVar(&startFlag, "start", "", "Start an existing server by it's name")
 	flag.StringVar(&stopFlag, "stop", "", "Stop an existing server by it's name")
+	flag.StringVar(&logsFlag, "logs", "", "Tail the logs from an existing server by it's name")
 	flag.Parse()
 
 	config.Read(configFile)
@@ -47,5 +49,8 @@ func main() {
 
 	case len(stopFlag) > 0:
 		cli.Stop(stopFlag)
+
+	case len(logsFlag) > 0:
+		cli.Logs(logsFlag)
 	}
 }
