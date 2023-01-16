@@ -7,5 +7,7 @@
     const main = root.appendChild(document.createElement(`div`))
 
     nav.textContent = "navigation"
+    nav.id = "nav"
     main.textContent = "main viewer"
+    main.id = "content"
 })()

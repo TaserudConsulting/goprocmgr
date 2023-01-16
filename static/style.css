@@ -1,1 +1,15 @@
 /* CSS file */
+/* Skeleton layout */
+html { height: 100%; }
+body { height: 100%; margin: 0; }
+#root { height: 100%; }
+#root nav#nav {
+    float: left;
+    height: 100%;
+    width: 20%;
+}
+#root div#content {
+    float: left;
+    height: 100%;
+    width: 80%;
+}
