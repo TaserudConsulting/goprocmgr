@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"math/rand"
 	"os/exec"
 	"strings"
@@ -148,6 +149,22 @@ func (runner *Runner) Stop(name string) error {
 	if _, ok := runner.ActiveProcesses[name]; !ok {
 		return nil
 	}
+
+	// Add a go routine to check if the process is killed or not after
+	// we've told it to SIGTERM. If it's still running, send a SIGKILL
+	// instead to clean up.
+	go func() {
+		time.Sleep(60 * time.Second)
+
+		if _, ok := runner.ActiveProcesses[name]; ok {
+			log.Printf("Force killed the process since it was still alive after 60 seconds %s", name)
+
+			runner.ActiveProcesses[name].Cmd.Process.Kill()
+
+			// Delete old status for process
+			delete(runner.ActiveProcesses, name)
+		}
+	}()
 
 	// Send SIGTERM to the process
 	runner.ActiveProcesses[name].Cmd.Process.Signal(syscall.SIGTERM)
