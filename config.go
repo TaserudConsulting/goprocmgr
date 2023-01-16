@@ -14,6 +14,8 @@ type Config struct {
 	Settings struct {
 		ListenAddress string `json:"listen_address"`
 		ListenPort    uint   `json:"listen_port"`
+		PortRangeMin  uint   `json:"port_range_min"`
+		PortRangeMax  uint   `json:"port_range_max"`
 	} `json:"settings"`
 	Servers map[string]ServerConfig `json:"servers"`
 }
@@ -32,6 +34,8 @@ func (config *Config) Read(configFileName string) {
 	// Set up default config struct.
 	config.Settings.ListenAddress = "127.0.0.1"
 	config.Settings.ListenPort = 6969
+	config.Settings.PortRangeMin = 40000
+	config.Settings.PortRangeMax = 41000
 
 	// Init servers map
 	if config.Servers == nil {
