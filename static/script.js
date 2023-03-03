@@ -34,9 +34,46 @@
         return response
     }
 
+    //
+    // This function actually clears the UL tag from items and then
+    // creates new list items to update the menu.
+    //
+    const renderMenu = async() => {
+        const servers = await fetchServers()
+
+        if (navUl.textContent === "🔃") {
+            // Empty the navigation list before we re-render it.
+            navUl.textContent = ""
+        }
+
+        // Go through all servers and add them to the navigation list.
+        for (const serverName in servers) {
+            // Try to select the previously selecting element
+            let li = document.getElementById("li-server-" + serverName)
+
+            // If it doesn't exist, create it.
+            if (!li) {
+                li = navUl.appendChild(document.createElement(`li`))
+                li.id = "li-server-" + serverName
+            }
+
+            // Prepare checked="" attribute for input type checkbox.
+            const checkStatus = servers[serverName].isRunning ? 'checked=""' : ''
+
+            // Update the content
+            li.innerHTML = `
+              <span>${serverName}</span> - <input type="checkbox" ${checkStatus} />
+            `
+        }
+    }
+
     nav.id = "nav"
     navH1.textContent = "navigation"
     navUl.textContent = "🔃"
     main.textContent = "main viewer"
     main.id = "content"
+
+    // Render the menu and keep updating it every now and then.
+    renderMenu()
+    setInterval(renderMenu, 5000)
 })()
