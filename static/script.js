@@ -4,6 +4,8 @@
 (function () {
     const root = document.getElementById('root')
     const nav = root.appendChild(document.createElement(`nav`))
+    const navH1 = nav.appendChild(document.createElement(`h1`))
+    const navUl = nav.appendChild(document.createElement(`ul`))
     const main = root.appendChild(document.createElement(`div`))
 
     //
@@ -32,8 +34,9 @@
         return response
     }
 
-    nav.textContent = "navigation"
     nav.id = "nav"
+    navH1.textContent = "navigation"
+    navUl.textContent = "🔃"
     main.textContent = "main viewer"
     main.id = "content"
 })()
