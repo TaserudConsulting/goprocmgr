@@ -3,7 +3,6 @@ package main // import "github.com/etu/goprocmgr"
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 )
@@ -44,7 +43,7 @@ func (config *Config) Read(configFileName string) {
 
 	if _, err := os.Stat(config.configFileName); err == nil {
 		// Read the config file
-		fileContent, err := ioutil.ReadFile(config.configFileName)
+		fileContent, err := os.ReadFile(config.configFileName)
 
 		if err != nil {
 			log.Fatalf("File read error: %v", err)
@@ -63,7 +62,7 @@ func (config *Config) Save() {
 	log.Printf("Writing configuration file at %s\n", config.configFileName)
 
 	encodedFile, _ := json.MarshalIndent(config, "", "    ")
-	_ = ioutil.WriteFile(config.configFileName, encodedFile, 0640)
+	_ = os.WriteFile(config.configFileName, encodedFile, 0640)
 }
 
 func (config *Config) WriteServer(server ServerConfig) error {

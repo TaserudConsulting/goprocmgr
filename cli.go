@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -41,7 +41,7 @@ func (cli *Cli) List() {
 
 	// Read the body content
 	defer res.Body.Close()
-	body, _ := ioutil.ReadAll(res.Body)
+	body, _ := io.ReadAll(res.Body)
 
 	// Parse the json
 	json.Unmarshal(body, &config)
@@ -65,7 +65,7 @@ func (cli *Cli) List() {
 
 	// Read the body content
 	defer runnerRes.Body.Close()
-	runnerBody, _ := ioutil.ReadAll(runnerRes.Body)
+	runnerBody, _ := io.ReadAll(runnerRes.Body)
 
 	// Parse the json
 	json.Unmarshal(runnerBody, &runners)
@@ -129,7 +129,7 @@ func (cli *Cli) Add(command string) {
 		log.Println("Created")
 	} else {
 		var response map[string]string
-		resbody, _ := ioutil.ReadAll(res.Body)
+		resbody, _ := io.ReadAll(res.Body)
 
 		// Parse the json
 		json.Unmarshal(resbody, &response)
@@ -167,7 +167,7 @@ func (cli *Cli) Remove(name string) {
 
 	// Handle error
 	var response map[string]string
-	resbody, _ := ioutil.ReadAll(res.Body)
+	resbody, _ := io.ReadAll(res.Body)
 
 	// Parse the json
 	json.Unmarshal(resbody, &response)
@@ -195,7 +195,7 @@ func (cli *Cli) Start(name string) {
 		log.Println("Started")
 	} else {
 		var response map[string]string
-		resbody, _ := ioutil.ReadAll(res.Body)
+		resbody, _ := io.ReadAll(res.Body)
 
 		// Parse the json
 		json.Unmarshal(resbody, &response)
@@ -233,7 +233,7 @@ func (cli *Cli) Stop(name string) {
 
 	// Handle error
 	var response map[string]string
-	resbody, _ := ioutil.ReadAll(res.Body)
+	resbody, _ := io.ReadAll(res.Body)
 
 	// Parse the json
 	json.Unmarshal(resbody, &response)
@@ -268,7 +268,7 @@ func (cli *Cli) Logs(name string) {
 
 		// Read the body content
 		defer runnerRes.Body.Close()
-		runnerBody, _ := ioutil.ReadAll(runnerRes.Body)
+		runnerBody, _ := io.ReadAll(runnerRes.Body)
 
 		// Parse the json
 		json.Unmarshal(runnerBody, &runners)
