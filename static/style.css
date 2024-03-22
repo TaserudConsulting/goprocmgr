@@ -1,15 +1,152 @@
 /* CSS file */
-/* Skeleton layout */
-html { height: 100%; }
-body { height: 100%; margin: 0; }
-#root { height: 100%; }
-#root nav#nav {
-    float: left;
+html {
     height: 100%;
-    width: 20%;
 }
-#root div#content {
-    float: left;
+
+body {
+    background-color: #ffffff;
+    color: #000000;
+    font-family: monospace;
     height: 100%;
-    width: 80%;
+    margin: 0;
+    padding: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #333333;
+        color: #ffffff;
+    }
+}
+
+#app {
+    display: flex;
+    height: 100%;
+}
+
+#wrapper {
+    display: flex;
+    width: 100%;
+}
+
+#app nav#nav {
+    background-color: #222222;
+    border-right: 1px solid black;
+    width: 300px;
+}
+
+#app nav#nav h1 {
+    border-bottom: 1px solid black;
+    color: #ffffff;
+    font-size: 26px;
+    font-weight: normal;
+    margin: 0;
+    padding: 18px 8px;
+    text-align: center;
+    user-select: none;
+}
+
+#app nav#nav ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+#app nav#nav ul li {
+    line-height: 34px;
+    font-size: 18px;
+    padding: 8px;
+    user-select: none;
+}
+
+#app nav#nav ul li.selected {
+    background-color: #aaaaaa;
+}
+
+@media (prefers-color-scheme: dark) {
+    #app nav#nav ul li.selected {
+        background-color: #3b3b3b;
+    }
+}
+
+#app div#content {
+    flex: 1;
+}
+
+#app div#content div#stderr-wrapper {
+    background-color: #4d1f1f;
+    height: 20%;
+}
+
+#app div#content div#stdout-wrapper div#stderr div:nth-child(odd) {
+    background-color: #5c3e3e;
+}
+
+#app div#content div#stdout-wrapper {
+    background-color: #316331;
+    height: 80%;
+}
+
+#app div#content div#stdout-wrapper div#stdout div:nth-child(odd) {
+    background-color: #3f693f;
+}
+
+#app div#content div#stdout-wrapper,
+#app div#content div#stdout-wrapper {
+    overflow: auto;
+}
+
+#app div#content div#stdout-wrapper div#stderr,
+#app div#content div#stdout-wrapper div#stdout {
+    padding: 8px;
+}
+
+#app div#content div#frontpage {
+    align-items: center;
+    display: flex;
+    font-size: 40px;
+    height: 100%;
+    justify-content: center;
+    padding: 0 20px;
+    text-align: center;
+}
+
+/* Nice toggle switch for input boxes */
+#app nav#nav ul li.server-item label.switch {
+    float: right;
+    height: 34px;
+    position: relative;
+    width: 60px;
+}
+
+#app nav#nav ul li.server-item label.switch input {
+    display: none;
+}
+
+#app nav#nav ul li.server-item label.switch div.slider {
+    background-color: #cccccc;
+    bottom: 0;
+    cursor: pointer;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+
+#app nav#nav ul li.server-item label.switch div.slider:before {
+    background-color: #ffffff;
+    bottom: 4px;
+    content: "";
+    height: 26px;
+    left: 4px;
+    position: absolute;
+    width: 26px;
+}
+
+#app nav#nav ul li.server-item label.switch input:checked+div.slider {
+    background-color: #66bb6a;
+}
+
+#app nav#nav ul li.server-item label.switch input:checked+div.slider:before {
+    transform: translateX(26px);
 }

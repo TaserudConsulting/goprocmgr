@@ -1,79 +1,172 @@
 // JS File
 'use strict';
 
-(function () {
-    const root = document.getElementById('root')
-    const nav = root.appendChild(document.createElement(`nav`))
-    const navH1 = nav.appendChild(document.createElement(`h1`))
-    const navUl = nav.appendChild(document.createElement(`ul`))
-    const main = root.appendChild(document.createElement(`div`))
+const App = () => {
+    // Store state for the server list
+    const serverListState = van.state([])
 
-    //
-    // This function will query the config and runner API's to get the
-    // configured servers and then to determine which ones are running
-    // or not. It should be used to render a list of processes and
-    // display if it's running or not.
-    //
-    const fetchServers = async() => {
-        const response = {};
+    // TODO: Store this in local session or URL or something.
+    const selectedServerState = van.state(null)
 
+    // This loads the current configured servers and their running state, then it updates
+    // the serverListState to update the rendered list.
+    const loadServers = (async () => {
         const configs = await (await fetch('/api/config')).json()
         const runners = await (await fetch('/api/runner')).json()
 
-        // Go through configs to build response containing some info
-        // about the service and it's current status.
+        const tmpServerListState = []
+
         for (const serverName in configs.servers) {
-            response[serverName] = {
+            tmpServerListState.push({
                 name: serverName,
-                cmd: configs.servers[serverName].cmd,
-                cwd: configs.servers[serverName].cwd,
-                isRunning: serverName in runners,
+                running: (serverName in runners),
+                stdout: runners[serverName] ? runners[serverName].stdout : [],
+                stderr: runners[serverName] ? runners[serverName].stderr : [],
+            })
+        }
+
+        serverListState.val = tmpServerListState
+    })
+
+    // Actually load the state
+    loadServers()
+
+    // And refresh the state every second
+    setInterval(loadServers, 1000)
+
+    // Update serverListState for the object with the name of `name` to running state of `state`
+    const setServerListStateFor = (name, state) => {
+        const tmpServerListState = []
+
+        for (const item of serverListState.val) {
+            if (item.name === name) {
+                item.running = state
+            }
+
+            tmpServerListState.push(item)
+        }
+
+        serverListState.val = tmpServerListState
+    }
+
+    // Get the running state of the server with the name of `name`
+    const getServerListStateFor = (name) => {
+        for (const item of serverListState.val) {
+            if (item.name === name) {
+                return item.running
             }
         }
 
-        return response
+        return false
     }
 
-    //
-    // This function actually clears the UL tag from items and then
-    // creates new list items to update the menu.
-    //
-    const renderMenu = async() => {
-        const servers = await fetchServers()
-
-        if (navUl.textContent === "🔃") {
-            // Empty the navigation list before we re-render it.
-            navUl.textContent = ""
-        }
-
-        // Go through all servers and add them to the navigation list.
-        for (const serverName in servers) {
-            // Try to select the previously selecting element
-            let li = document.getElementById("li-server-" + serverName)
-
-            // If it doesn't exist, create it.
-            if (!li) {
-                li = navUl.appendChild(document.createElement(`li`))
-                li.id = "li-server-" + serverName
+    // Object to render the actual items in the server list
+    const ServerItem = (name) => {
+        const toggleServer = async () => {
+            if (getServerListStateFor(name)) {
+                await fetch(`/api/runner/${name}`, { method: 'DELETE' })
+                setServerListStateFor(name, false)
+                return
             }
 
-            // Prepare checked="" attribute for input type checkbox.
-            const checkStatus = servers[serverName].isRunning ? 'checked=""' : ''
-
-            // Update the content
-            li.innerHTML = `
-              <span>${serverName}</span> - <input type="checkbox" ${checkStatus} />
-            `
+            await fetch(`/api/runner/${name}`, { method: 'POST' })
+            setServerListStateFor(name, true)
         }
+
+        return van.tags.li(
+            {
+                class: () => selectedServerState.val === name ? 'server-item selected' : 'server-item',
+                onclick: () => { selectedServerState.val = name }
+            },
+            name,
+            van.tags.label(
+                { class: 'switch', for: 'toggle-' + name },
+                van.tags.input({
+                    type: 'checkbox',
+                    id: 'toggle-' + name,
+                    checked: getServerListStateFor(name),
+                    onclick: () => toggleServer(),
+                }),
+                van.tags.div({ class: 'slider' })
+            )
+        )
     }
 
-    nav.id = "nav"
-    navH1.textContent = "navigation"
-    navUl.textContent = "🔃"
-    main.textContent = "main viewer"
-    main.id = "content"
+    // Derive the server list state into a list of items to render
+    const serverList = van.derive(() => van.tags.ul(
+        { class: 'server-list' },
+        serverListState.val.map((item) => ServerItem(item.name))
+    ))
 
-    // Render the menu and keep updating it every now and then.
-    renderMenu()
-    setInterval(renderMenu, 5000)
-})()
+    // Derive the selection state to render the main viewer
+    const mainViewer = van.derive(() => {
+        // Render the stderr of the selected server, however it will render the newest
+        // lines at the top of the viewer.
+        const stderrViewer = (name) => {
+            let stderrLogLines = []
+
+            // Loop through serverListState until you find the server with the name of `name`
+            for (const item of serverListState.val) {
+                if (item.name === name && item.stderr !== null) {
+                    stderrLogLines = item.stderr
+
+                    break
+                }
+            }
+
+            return van.tags.div(
+                { id: 'stderr-wrapper' },
+                van.tags.div(
+                    { id: 'stderr' },
+                    stderrLogLines.reverse().map((line) => van.tags.div(line))
+                )
+            )
+        }
+
+        // Render the stdout of the selected server, however it will render the newest
+        // lines at the top of the viewer.
+        const stdoutViewer = (name) => {
+            let stdoutLogLines = []
+
+            // Loop through serverListState until you find the server with the name of `name`
+            for (const item of serverListState.val) {
+                if (item.name === name && item.stdout !== null) {
+                    stdoutLogLines = item.stdout
+
+                    break
+                }
+            }
+
+            return van.tags.div(
+                { id: 'stdout-wrapper' },
+                van.tags.div(
+                    { id: 'stdout' },
+                    stdoutLogLines.reverse().map((line) => van.tags.div(line))
+                )
+            )
+        }
+
+        return van.tags.div(
+            { id: 'content' },
+            (!selectedServerState.val) ? van.tags.div({ id: 'frontpage' }, 'Select a server to view its logs :)') : null,
+            (!getServerListStateFor(selectedServerState.val)) ? van.tags.div({ id: 'frontpage' }, 'Server is currently not started :)') : null,
+            (getServerListStateFor(selectedServerState.val) && !!selectedServerState.val) ? stderrViewer(selectedServerState.val) : null,
+            (getServerListStateFor(selectedServerState.val) && !!selectedServerState.val) ? stdoutViewer(selectedServerState.val) : null,
+        )
+    })
+
+    return van.tags.div(
+        { id: 'wrapper' },
+        van.tags.nav(
+            { id: 'nav' },
+            van.tags.h1(
+                { onclick: () => { selectedServerState.val = null } },
+                'goprocmgr'
+            ),
+            serverList
+        ),
+        mainViewer,
+    )
+}
+
+van.add(document.getElementById('app'), App());
