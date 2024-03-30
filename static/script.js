@@ -151,9 +151,12 @@ const App = () => {
             )
         }
 
+        // Select a welcome message based on if there's servers or not.
+        const welcomeMessage = (serverListState.val.length === 0) ? 'No servers configured yet :)' : 'Select a server to view its logs :)'
+
         return van.tags.div(
             { id: 'content' },
-            (!selectedServerState.val || selectedServerState.val === 'null') ? van.tags.div({ id: 'frontpage' }, 'Select a server to view its logs :)') : null,
+            (!selectedServerState.val || selectedServerState.val === 'null') ? van.tags.div({ id: 'frontpage' }, welcomeMessage) : null,
             (!getServerListStateFor(selectedServerState.val)) ? van.tags.div({ id: 'frontpage' }, 'Server "', selectedServerState.val, '" is currently not started :)') : null,
             (getServerListStateFor(selectedServerState.val) && !!selectedServerState.val) ? stderrViewer(selectedServerState.val) : null,
             (getServerListStateFor(selectedServerState.val) && !!selectedServerState.val) ? stdoutViewer(selectedServerState.val) : null,
