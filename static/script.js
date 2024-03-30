@@ -5,8 +5,13 @@ const App = () => {
     // Store state for the server list
     const serverListState = van.state([])
 
-    // TODO: Store this in local session or URL or something.
-    const selectedServerState = van.state(null)
+    // Store state for selected server in the UI.
+    const selectedServerState = van.state(localStorage.getItem('selectedServerState') ?? null)
+
+    // Save the selected server state to local storage when it's updated.
+    van.derive(() => {
+        localStorage.setItem('selectedServerState', selectedServerState.val)
+    });
 
     // This loads the current configured servers and their running state, then it updates
     // the serverListState to update the rendered list.
@@ -148,8 +153,8 @@ const App = () => {
 
         return van.tags.div(
             { id: 'content' },
-            (!selectedServerState.val) ? van.tags.div({ id: 'frontpage' }, 'Select a server to view its logs :)') : null,
-            (!getServerListStateFor(selectedServerState.val)) ? van.tags.div({ id: 'frontpage' }, 'Server is currently not started :)') : null,
+            (!selectedServerState.val || selectedServerState.val === 'null') ? van.tags.div({ id: 'frontpage' }, 'Select a server to view its logs :)') : null,
+            (!getServerListStateFor(selectedServerState.val)) ? van.tags.div({ id: 'frontpage' }, 'Server "', selectedServerState.val, '" is currently not started :)') : null,
             (getServerListStateFor(selectedServerState.val) && !!selectedServerState.val) ? stderrViewer(selectedServerState.val) : null,
             (getServerListStateFor(selectedServerState.val) && !!selectedServerState.val) ? stdoutViewer(selectedServerState.val) : null,
         )
