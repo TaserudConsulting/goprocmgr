@@ -111,6 +111,18 @@ body {
     text-align: center;
 }
 
+#app nav#nav ul li.server-item span.log-item-count {
+    font-size: 12px;
+}
+
+#app nav#nav ul li.server-item span.log-item-count span.stderr {
+    color: #cf5454;
+}
+
+#app nav#nav ul li.server-item span.log-item-count span.stdout {
+    color: #51df51;
+}
+
 /* Nice toggle switch for input boxes */
 #app nav#nav ul li.server-item label.switch {
     float: right;
