@@ -72,7 +72,7 @@ func (cli *Cli) List() {
 
 	output := table.NewWriter()
 	output.SetOutputMirror(os.Stdout)
-	output.AppendHeader(table.Row{"Running", "Name", "Directory", "Command"})
+	output.AppendHeader(table.Row{"Name", "Running", "Directory", "Command"})
 
 	for _, val := range config.Servers {
 		isRunning := false
@@ -81,7 +81,7 @@ func (cli *Cli) List() {
 			isRunning = true
 		}
 
-		output.AppendRow([]interface{}{isRunning, val.Name, val.Directory, val.Command})
+		output.AppendRow([]interface{}{val.Name, isRunning, val.Directory, val.Command})
 	}
 
 	output.Render()
