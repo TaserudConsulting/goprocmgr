@@ -1,6 +1,7 @@
 package main // import "github.com/TaserudConsulting/goprocmgr"
 
 import (
+	"embed"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -36,21 +37,32 @@ func (serve *Serve) Run() {
 	))
 }
 
+//go:embed "static"
+var static embed.FS
+
 func (serve *Serve) newRouter() *mux.Router {
 	router := mux.NewRouter().StrictSlash(true)
 
 	// Web server endpoints
 	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "./static/index.html")
+		file, _ := static.ReadFile("static/index.html")
+		w.Header().Set("Content-Type", "text/html")
+		w.Write(file)
 	})
 	router.HandleFunc("/web/style.css", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "./static/style.css")
+		file, _ := static.ReadFile("static/style.css")
+		w.Header().Set("Content-Type", "text/css")
+		w.Write(file)
 	})
 	router.HandleFunc("/web/script.js", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "./static/script.js")
+		file, _ := static.ReadFile("static/script.js")
+		w.Header().Set("Content-Type", "application/javascript")
+		w.Write(file)
 	})
 	router.HandleFunc("/web/van-1.5.0.nomodule.min.js", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "./static/van-1.5.0.nomodule.min.js")
+		file, _ := static.ReadFile("static/van-1.5.0.nomodule.min.js")
+		w.Header().Set("Content-Type", "application/javascript")
+		w.Write(file)
 	})
 
 	// This endpoint is served at GET /api/config and it returns the
