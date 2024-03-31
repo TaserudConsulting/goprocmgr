@@ -1,5 +1,5 @@
 {
-  description = "etu/goprocmgr";
+  description = "TaserudConsulting/goprocmgr";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";

@@ -1,4 +1,4 @@
-package main // import "github.com/etu/goprocmgr"
+package main // import "github.com/TaserudConsulting/goprocmgr"
 
 import (
 	"bytes"

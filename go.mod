@@ -1,4 +1,4 @@
-module github.com/etu/goprocmgr
+module github.com/TaserudConsulting/goprocmgr
 
 go 1.19
 
