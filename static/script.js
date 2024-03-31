@@ -84,14 +84,14 @@ const App = () => {
                 onclick: () => { selectedServerState.val = name }
             },
             name,
-            van.tags.span(
+            getServerListStateFor(name) ? van.tags.span(
                 { class: 'log-item-count' },
                 ' (',
                 van.tags.span({ class: 'stderr' }, () => { return serverListState.val.find((item) => item.name === name)?.stderr?.length ?? 0 }),
                 '/',
                 van.tags.span({ class: 'stdout' }, () => { return serverListState.val.find((item) => item.name === name)?.stdout?.length ?? 0 }),
                 ')',
-            ),
+            ) : null,
             van.tags.label(
                 { class: 'switch', for: 'toggle-' + name },
                 van.tags.input({
