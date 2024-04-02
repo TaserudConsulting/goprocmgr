@@ -92,7 +92,7 @@ body {
 }
 
 #app div#content div#stdout-wrapper,
-#app div#content div#stdout-wrapper {
+#app div#content div#stderr-wrapper {
     overflow: auto;
 }
 
