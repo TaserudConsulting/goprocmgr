@@ -11,7 +11,7 @@ const App = () => {
     // Save the selected server state to local storage when it's updated.
     van.derive(() => {
         localStorage.setItem('selectedServerState', selectedServerState.val)
-    });
+    })
 
     // This loads the current configured servers and their running state, then it updates
     // the serverListState to update the rendered list.
