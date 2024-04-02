@@ -165,7 +165,8 @@ const App = () => {
         return van.tags.div(
             { id: 'content' },
             (!selectedServerState.val || selectedServerState.val === 'null') ? van.tags.div({ id: 'frontpage' }, welcomeMessage) : null,
-            (!getServerListStateFor(selectedServerState.val)) ? van.tags.div({ id: 'frontpage' }, 'Server "', selectedServerState.val, '" is currently not started :)') : null,
+            (!getServerListStateFor(selectedServerState.val) && selectedServerState.val !== 'null' && selectedServerState.val !== null) ?
+                van.tags.div({ id: 'frontpage' }, 'Server "', selectedServerState.val, '" is currently not started :)') : null,
             (getServerListStateFor(selectedServerState.val) && !!selectedServerState.val) ? stderrViewer(selectedServerState.val) : null,
             (getServerListStateFor(selectedServerState.val) && !!selectedServerState.val) ? stdoutViewer(selectedServerState.val) : null,
         )
