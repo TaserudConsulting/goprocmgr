@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
 )
@@ -43,27 +44,24 @@ var static embed.FS
 func (serve *Serve) newRouter() *mux.Router {
 	router := mux.NewRouter().StrictSlash(true)
 
+	serveFile := func(fileName string, contentType string) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			if _, err := os.Stat(fileName); err == nil {
+				http.ServeFile(w, r, fileName)
+				return
+			}
+
+			file, _ := static.ReadFile(fileName)
+			w.Header().Set("Content-Type", contentType)
+			w.Write(file)
+		}
+	}
+
 	// Web server endpoints
-	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		file, _ := static.ReadFile("static/index.html")
-		w.Header().Set("Content-Type", "text/html")
-		w.Write(file)
-	})
-	router.HandleFunc("/web/style.css", func(w http.ResponseWriter, r *http.Request) {
-		file, _ := static.ReadFile("static/style.css")
-		w.Header().Set("Content-Type", "text/css")
-		w.Write(file)
-	})
-	router.HandleFunc("/web/script.js", func(w http.ResponseWriter, r *http.Request) {
-		file, _ := static.ReadFile("static/script.js")
-		w.Header().Set("Content-Type", "application/javascript")
-		w.Write(file)
-	})
-	router.HandleFunc("/web/van-1.5.0.nomodule.min.js", func(w http.ResponseWriter, r *http.Request) {
-		file, _ := static.ReadFile("static/van-1.5.0.nomodule.min.js")
-		w.Header().Set("Content-Type", "application/javascript")
-		w.Write(file)
-	})
+	router.HandleFunc("/", serveFile("static/index.html", "text/html"))
+	router.HandleFunc("/web/style.css", serveFile("static/style.css", "text/css"))
+	router.HandleFunc("/web/script.js", serveFile("static/script.js", "application/javascript"))
+	router.HandleFunc("/web/van-1.5.0.nomodule.min.js", serveFile("static/van-1.5.0.nomodule.min.js", "application/javascript"))
 
 	// This endpoint is served at GET /api/config and it returns the
 	// currently loaded config.
