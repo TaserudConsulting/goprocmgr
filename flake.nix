@@ -17,10 +17,15 @@
     in {
       packages = flake-utils.lib.flattenTree {
         default = pkgs.buildGoModule (let
-          version = "0.0.0.${nixpkgs.lib.substring 0 8 self.lastModifiedDate}.${self.shortRev or "dirty"}";
+          versionTag = "0.0.0";
+          version = "${versionTag}.${nixpkgs.lib.substring 0 8 self.lastModifiedDate}.${self.shortRev or "dirty"}";
         in {
           pname = "goprocmgr";
           inherit version;
+
+          prePatch = ''
+            substituteInPlace main.go --replace "%undefined-version%" ${versionTag}
+          '';
 
           src = ./.;
 
