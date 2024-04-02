@@ -32,6 +32,8 @@ body {
 #app nav#nav {
     background-color: #222222;
     border-right: 1px solid black;
+    display: flex;
+    flex-flow: column;
     width: 350px;
 }
 
@@ -47,9 +49,11 @@ body {
 }
 
 #app nav#nav ul {
+    flex: 1;
     list-style-type: none;
     margin: 0;
     padding: 0;
+    overflow: scroll;
 }
 
 #app nav#nav ul li {
@@ -67,6 +71,19 @@ body {
     #app nav#nav ul li.selected {
         background-color: #3b3b3b;
     }
+}
+
+#app nav#nav aside.bottom-nav {
+    border-top: 1px solid black;
+    font-size: 18px;
+    margin: 0;
+    padding: 14px 6px;
+    font-weight: normal;
+    text-align: center;
+}
+
+#app nav#nav aside.bottom-nav a {
+    color: #ffffff;
 }
 
 #app div#content {

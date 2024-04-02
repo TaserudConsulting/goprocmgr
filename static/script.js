@@ -180,7 +180,14 @@ const App = () => {
                 { onclick: () => { selectedServerState.val = null } },
                 'goprocmgr'
             ),
-            serverList
+            serverList,
+            van.tags.aside(
+                { class: 'bottom-nav' },
+                van.tags.a(
+                    { href: 'https://github.com/TaserudConsulting/goprocmgr', target: '_blank' },
+                    'GitHub'
+                ),
+            )
         ),
         mainViewer,
     )
