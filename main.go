@@ -20,7 +20,7 @@ func main() {
 	cli := Cli{config: &config}
 
 	flag.StringVar(&configFile, "config", config.GuessFileName(""), "Specify config file")
-	flag.BoolVar(&serveFlag, "serve", false, "Run the serve command")
+	flag.BoolVar(&serveFlag, "serve", true, "Run the serve command (start the web server)")
 	flag.BoolVar(&listFlag, "list", false, "List the stored servers")
 	flag.StringVar(&addFlag, "add", "", "Add a new server, will capture the current directory and environment and then takes the command as an argument")
 	flag.StringVar(&removeFlag, "remove", "", "Remove an existing server by it's name")
@@ -32,9 +32,6 @@ func main() {
 	config.Read(configFile)
 
 	switch true {
-	case serveFlag:
-		serve.Run()
-
 	case listFlag:
 		cli.List()
 
@@ -52,5 +49,8 @@ func main() {
 
 	case len(logsFlag) > 0:
 		cli.Logs(logsFlag)
+
+	case serveFlag:
+		serve.Run()
 	}
 }
