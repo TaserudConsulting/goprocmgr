@@ -19,3 +19,10 @@ simpler in design, feature set and implementation.
 - Random port assignment for servers with the environment variable `PORT`.
 
 ![Screenshot](./docs/screenshot.png)
+
+## TODO
+- Implement `direnv` support `direnv exec $dirname $command`.
+- Implement "pause" function in the web interface.
+- Implement keybind support in the web interface.
+- Implement an overview of the keybind in the web interface.
+- Implement a getting started overview in the web interface on the frontpage.
