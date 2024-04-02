@@ -96,7 +96,7 @@ func (runner *Runner) Start(name string) error {
 	stderrScanner := bufio.NewScanner(stderr)
 	go func() {
 		for stderrScanner.Scan() {
-			activeRunner.Stderr = append(activeRunner.Stderr, stdoutScanner.Text())
+			activeRunner.Stderr = append(activeRunner.Stderr, stderrScanner.Text())
 		}
 	}()
 
