@@ -78,8 +78,8 @@ body {
     height: 20%;
 }
 
-#app div#content div#stdout-wrapper div#stderr div:nth-child(odd) {
-    background-color: #5c3e3e;
+#app div#content div#stderr-wrapper div#stderr div:nth-child(odd) {
+    background-color: #5a2929;
 }
 
 #app div#content div#stdout-wrapper {
@@ -96,7 +96,7 @@ body {
     overflow: auto;
 }
 
-#app div#content div#stdout-wrapper div#stderr,
+#app div#content div#stderr-wrapper div#stderr,
 #app div#content div#stdout-wrapper div#stdout {
     padding: 8px;
 }
