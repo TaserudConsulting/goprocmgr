@@ -22,6 +22,7 @@ type ServeMessageResponse struct {
 
 type ServeRunnerResponseItem struct {
 	Name   string   `json:"name"`
+	Port   uint     `json:"port"`
 	Stdout []string `json:"stdout"`
 	Stderr []string `json:"stderr"`
 }
@@ -120,6 +121,7 @@ func (serve *Serve) newRouter() *mux.Router {
 		for key, value := range serve.runner.ActiveProcesses {
 			resp[key] = ServeRunnerResponseItem{
 				Name:   key,
+				Port:   value.Port,
 				Stdout: value.Stdout,
 				Stderr: value.Stderr,
 			}

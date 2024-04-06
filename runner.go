@@ -19,9 +19,9 @@ type Runner struct {
 
 type ActiveRunner struct {
 	Cmd    *exec.Cmd
+	Port   uint
 	Stdout []string
 	Stderr []string
-	Port   uint
 }
 
 func (runner *Runner) Start(name string) error {
@@ -82,6 +82,9 @@ func (runner *Runner) Start(name string) error {
 	if err != nil {
 		return err
 	}
+
+	// Store the port in the runner to expose in the API.
+	activeRunner.Port = port
 
 	// Set environment for running command, first inherit the env from the running command.
 	cmd.Env = os.Environ()
