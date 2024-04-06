@@ -2,6 +2,9 @@
 'use strict';
 
 const App = () => {
+    // State to pause the refresh of the server list
+    const pauseRefresh = van.state(false)
+
     // Store state for the server list
     const serverListState = van.state([])
 
@@ -16,6 +19,10 @@ const App = () => {
     // This loads the current configured servers and their running state, then it updates
     // the serverListState to update the rendered list.
     const loadServers = (async () => {
+        if (pauseRefresh.val) {
+            return
+        }
+
         const configs = await (await fetch('/api/config')).json()
         const runners = await (await fetch('/api/runner')).json()
 
@@ -108,6 +115,20 @@ const App = () => {
     // Derive the server list state into a list of items to render
     const serverList = van.derive(() => van.tags.ul(
         { class: 'server-list' },
+        van.tags.li(
+            { class: 'server-item refresh-toggle' },
+            'auto refresh',
+            van.tags.label(
+                { class: 'switch', for: 'refresh-toggle' },
+                van.tags.input({
+                    type: 'checkbox',
+                    id: 'refresh-toggle',
+                    checked: () => pauseRefresh.val === false ? 'checked' : null,
+                    onclick: () => { pauseRefresh.val = !pauseRefresh.val },
+                }),
+                van.tags.div({ class: 'slider' })
+            )
+        ),
         serverListState.val.map((item) => ServerItem(item.name))
     ))
 
