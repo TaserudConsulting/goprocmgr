@@ -31,6 +31,7 @@ const App = () => {
         for (const serverName in configs.servers) {
             tmpServerListState.push({
                 name: serverName,
+                port: runners[serverName].port,
                 running: (serverName in runners),
                 stdout: runners[serverName] ? runners[serverName].stdout : [],
                 stderr: runners[serverName] ? runners[serverName].stderr : [],
@@ -90,7 +91,10 @@ const App = () => {
                 class: () => selectedServerState.val === name ? 'server-item selected' : 'server-item',
                 onclick: () => { selectedServerState.val = name }
             },
-            name,
+            getServerListStateFor(name) ? van.tags.a(
+                { target: '_blank', href: `http://${window.location.hostname}:${serverListState.val.find((item) => item.name === name)?.port ?? 0}` },
+                name,
+            ) : name,
             getServerListStateFor(name) ? van.tags.span(
                 { class: 'log-item-count' },
                 ' (',
