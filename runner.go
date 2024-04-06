@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"os"
 	"os/exec"
 	"strings"
 	"syscall"
@@ -61,11 +62,12 @@ func (runner *Runner) Start(name string) error {
 		return err
 	}
 
-	// Set environment for running command.
-	cmd.Env = []string{
-		fmt.Sprintf("PORT=%d", port),
-		fmt.Sprintf("PATH=%s", runner.config.Servers[name].Environment["PATH"]),
-	}
+	// Set environment for running command, first inherit the env from the running command.
+	cmd.Env = os.Environ()
+
+	// Then, add the environment variables from the config.
+	cmd.Env = append(cmd.Env, fmt.Sprintf("PORT=%d", port))
+	cmd.Env = append(cmd.Env, fmt.Sprintf("PATH=%s", runner.config.Servers[name].Environment["PATH"]))
 
 	// Set up pipe to read stdout
 	stdout, err := cmd.StdoutPipe()
