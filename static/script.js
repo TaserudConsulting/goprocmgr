@@ -18,7 +18,7 @@ const App = () => {
 
     // This loads the current configured servers and their running state, then it updates
     // the serverListState to update the rendered list.
-    const loadServers = (async () => {
+    const loadServers = async () => {
         if (pauseRefresh.val) {
             return
         }
@@ -26,20 +26,14 @@ const App = () => {
         const configs = await (await fetch('/api/config')).json()
         const runners = await (await fetch('/api/runner')).json()
 
-        const tmpServerListState = []
-
-        for (const serverName in configs.servers) {
-            tmpServerListState.push({
-                name: serverName,
-                port: runners[serverName].port,
-                running: (serverName in runners),
-                stdout: runners[serverName] ? runners[serverName].stdout : [],
-                stderr: runners[serverName] ? runners[serverName].stderr : [],
-            })
-        }
-
-        serverListState.val = tmpServerListState
-    })
+        serverListState.val = Object.keys(configs.servers).map(serverName => ({
+            name: serverName,
+            port: runners[serverName]?.port ?? 0,
+            running: (serverName in runners),
+            stdout: runners[serverName]?.stdout || [],
+            stderr: runners[serverName]?.stderr || [],
+        }))
+    }
 
     // Actually load the state
     loadServers()
@@ -49,72 +43,63 @@ const App = () => {
 
     // Update serverListState for the object with the name of `name` to running state of `state`
     const setServerListStateFor = (name, state) => {
-        const tmpServerListState = []
-
-        for (const item of serverListState.val) {
+        serverListState.val = serverListState.val.map(item => {
             if (item.name === name) {
-                item.running = state
+                return { ...item, running: state }
             }
-
-            tmpServerListState.push(item)
-        }
-
-        serverListState.val = tmpServerListState
+            return item
+        })
     }
 
     // Get the running state of the server with the name of `name`
-    const getServerListStateFor = (name) => {
-        for (const item of serverListState.val) {
-            if (item.name === name) {
-                return item.running
-            }
+    const getServerListStateFor = name => {
+        const server = serverListState.val.find(item => item.name === name);
+
+        return server ? server.running : false;
+    }
+
+    // Toggle the server with the name of `name`
+    const toggleServer = async (name) => {
+        if (getServerListStateFor(name)) {
+            await fetch(`/api/runner/${name}`, { method: 'DELETE' })
+            setServerListStateFor(name, false)
+            return
         }
 
-        return false
+        await fetch(`/api/runner/${name}`, { method: 'POST' })
+        setServerListStateFor(name, true)
     }
 
     // Object to render the actual items in the server list
-    const ServerItem = (name) => {
-        const toggleServer = async () => {
-            if (getServerListStateFor(name)) {
-                await fetch(`/api/runner/${name}`, { method: 'DELETE' })
-                setServerListStateFor(name, false)
-                return
-            }
-
-            await fetch(`/api/runner/${name}`, { method: 'POST' })
-            setServerListStateFor(name, true)
-        }
-
-        return van.tags.li(
-            {
-                class: () => selectedServerState.val === name ? 'server-item selected' : 'server-item',
-                onclick: () => { selectedServerState.val = name }
-            },
-            getServerListStateFor(name) ? van.tags.a(
-                { target: '_blank', href: `http://${window.location.hostname}:${serverListState.val.find((item) => item.name === name)?.port ?? 0}` },
-                name,
-            ) : name,
-            getServerListStateFor(name) ? van.tags.span(
-                { class: 'log-item-count' },
-                ' (',
-                van.tags.span({ class: 'stderr' }, () => { return serverListState.val.find((item) => item.name === name)?.stderr?.length ?? 0 }),
-                '/',
-                van.tags.span({ class: 'stdout' }, () => { return serverListState.val.find((item) => item.name === name)?.stdout?.length ?? 0 }),
-                ')',
-            ) : null,
-            van.tags.label(
-                { class: 'switch', for: 'toggle-' + name },
-                van.tags.input({
-                    type: 'checkbox',
-                    id: 'toggle-' + name,
-                    checked: getServerListStateFor(name),
-                    onclick: () => toggleServer(),
-                }),
-                van.tags.div({ class: 'slider' })
-            )
+    const ServerItem = name => van.tags.li(
+        {
+            class: () => selectedServerState.val === name ? 'server-item selected' : 'server-item',
+            onclick: () => { selectedServerState.val = name }
+        },
+        getServerListStateFor(name) ? van.tags.a(
+            { target: '_blank', href: `http://${window.location.hostname}:${serverListState.val.find(item => item.name === name)?.port ?? 0}` },
+            name,
+        ) : name,
+        getServerListStateFor(name) ? van.tags.span(
+            { class: 'log-item-count' },
+            ' (',
+            van.tags.span({ class: 'stderr' }, serverListState.val.find(item => item.name === name)?.stderr?.length ?? 0),
+            '/',
+            van.tags.span({ class: 'stdout' }, serverListState.val.find(item => item.name === name)?.stdout?.length ?? 0),
+            ')',
+        ) : null,
+        van.tags.label(
+            { class: 'switch', for: 'toggle-' + name },
+            van.tags.input({
+                type: 'checkbox',
+                id: 'toggle-' + name,
+                checked: getServerListStateFor(name),
+                onclick: () => toggleServer(name),
+            }),
+            van.tags.div({ class: 'slider' })
         )
-    }
+    )
+
 
     // Derive the server list state into a list of items to render
     const serverList = van.derive(() => van.tags.ul(
@@ -127,61 +112,45 @@ const App = () => {
                 van.tags.input({
                     type: 'checkbox',
                     id: 'refresh-toggle',
-                    checked: () => pauseRefresh.val === false ? 'checked' : null,
+                    checked: () => !pauseRefresh.val ? 'checked' : null,
                     onclick: () => { pauseRefresh.val = !pauseRefresh.val },
                 }),
                 van.tags.div({ class: 'slider' })
             )
         ),
-        serverListState.val.map((item) => ServerItem(item.name))
+        serverListState.val.map(item => ServerItem(item.name))
     ))
 
     // Derive the selection state to render the main viewer
     const mainViewer = van.derive(() => {
         // Render the stderr of the selected server, however it will render the newest
         // lines at the top of the viewer.
-        const stderrViewer = (name) => {
-            let stderrLogLines = []
-
-            // Loop through serverListState until you find the server with the name of `name`
-            for (const item of serverListState.val) {
-                if (item.name === name && item.stderr !== null) {
-                    stderrLogLines = item.stderr
-
-                    break
-                }
-            }
+        const stderrViewer = name => {
+            const server = serverListState.val.find(item => item.name === name);
+            const stderrLogLines = server?.stderr || [];
 
             return van.tags.div(
                 { id: 'stderr-wrapper' },
                 van.tags.div(
                     { id: 'stderr' },
-                    stderrLogLines.reverse().map((line) => van.tags.div(line))
+                    stderrLogLines.reverse().map(line => van.tags.div(line))
                 )
-            )
+            );
         }
 
         // Render the stdout of the selected server, however it will render the newest
         // lines at the top of the viewer.
-        const stdoutViewer = (name) => {
-            let stdoutLogLines = []
-
-            // Loop through serverListState until you find the server with the name of `name`
-            for (const item of serverListState.val) {
-                if (item.name === name && item.stdout !== null) {
-                    stdoutLogLines = item.stdout
-
-                    break
-                }
-            }
+        const stdoutViewer = name => {
+            const server = serverListState.val.find(item => item.name === name && item.stdout !== null);
+            const stdoutLogLines = server?.stdout || [];
 
             return van.tags.div(
                 { id: 'stdout-wrapper' },
                 van.tags.div(
                     { id: 'stdout' },
-                    stdoutLogLines.reverse().map((line) => van.tags.div(line))
+                    stdoutLogLines.reverse().map(line => van.tags.div(line))
                 )
-            )
+            );
         }
 
         // Select a welcome message based on if there's servers or not.
