@@ -98,11 +98,18 @@ func (cli *Cli) Add(command string) {
 		os.Exit(3)
 	}
 
+	// Check if DIRENV_FILE is set or not
+	useDirenv := false
+	if _, ok := os.LookupEnv("DIRENV_FILE"); ok {
+		useDirenv = true
+	}
+
 	// Build a new server config
 	server := ServerConfig{
 		Name:      filepath.Base(directory),
 		Command:   command,
 		Directory: directory,
+		UseDirenv: useDirenv,
 		Environment: map[string]string{
 			"PATH": os.Getenv("PATH"),
 		},

@@ -44,10 +44,31 @@ func (runner *Runner) Start(name string) error {
 
 	// Set up a command.
 	var cmd *exec.Cmd
-	if len(splitCmd) > 1 {
-		cmd = exec.Command(splitCmd[0], splitCmd[1])
+
+	if runner.config.Servers[name].UseDirenv {
+		if len(splitCmd) > 1 {
+			cmd = exec.Command(
+				"direnv",
+				"exec",
+				".",
+				splitCmd[0],
+				"--",
+				splitCmd[1],
+			)
+		} else {
+			cmd = exec.Command(
+				"direnv",
+				"exec",
+				".",
+				runner.config.Servers[name].Command,
+			)
+		}
 	} else {
-		cmd = exec.Command(runner.config.Servers[name].Command)
+		if len(splitCmd) > 1 {
+			cmd = exec.Command(splitCmd[0], splitCmd[1])
+		} else {
+			cmd = exec.Command(runner.config.Servers[name].Command)
+		}
 	}
 
 	// Store my active processes

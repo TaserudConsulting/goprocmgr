@@ -21,7 +21,7 @@ simpler in design, feature set and implementation.
 ![Screenshot](./docs/screenshot.png)
 
 ## TODO
-- Implement `direnv` support `direnv exec $dirname $command`.
+- [X] Implement `direnv` support `direnv exec $dirname $command`.
 - Implement "pause" function in the web interface.
 - Implement keybind support in the web interface.
 - Implement an overview of the keybind in the web interface.

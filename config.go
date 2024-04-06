@@ -23,6 +23,7 @@ type ServerConfig struct {
 	Name        string            `json:"name"`
 	Directory   string            `json:"cwd"`
 	Command     string            `json:"cmd"`
+	UseDirenv   bool              `json:"use_direnv"`
 	Environment map[string]string `json:"env"`
 }
 
