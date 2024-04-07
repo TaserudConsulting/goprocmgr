@@ -59,17 +59,17 @@ body {
     border-right: 0.1rem solid var(--main-border-color);
     display: flex;
     flex-flow: column;
-    width: 21.875rem;
-    min-width: 21.875rem;
+    width: 22rem;
+    min-width: 22rem;
 }
 
 #app nav#nav h1 {
     border-bottom: 0.1rem solid var(--main-border-color);
     color: var(--main-fg-color);
-    font-size: 1.625rem;
+    font-size: 1.5rem;
     font-weight: normal;
     margin: 0;
-    padding: 1.125rem 0.5rem;
+    line-height: 4rem;
     text-align: center;
     user-select: none;
 }
@@ -83,8 +83,8 @@ body {
 }
 
 #app nav#nav ul li {
-    line-height: 2.125rem;
-    font-size: 1.125rem;
+    line-height: 2.2rem;
+    font-size: 1.1rem;
     padding: 0.5rem;
     user-select: none;
 }
@@ -103,9 +103,9 @@ body {
 
 #app nav#nav aside.bottom-nav {
     border-top: 0.1rem solid var(--main-border-color);
-    font-size: 1.125rem;
+    font-size: 1.25rem;
     margin: 0;
-    padding: 0.875rem 0.375rem;
+    line-height: 3rem;
     font-weight: normal;
     text-align: center;
 }
@@ -144,7 +144,12 @@ body {
 
 #app div#content div#stderr-wrapper div#stderr,
 #app div#content div#stdout-wrapper div#stdout {
-    padding: 0.5rem;
+    padding: 0.25rem 0;
+}
+
+#app div#content div#stderr-wrapper div#stderr div,
+#app div#content div#stdout-wrapper div#stdout div {
+    padding: 0 0.25rem;
 }
 
 #app div#content div#frontpage {
@@ -172,9 +177,9 @@ body {
 /* Nice toggle switch for input boxes */
 #app nav#nav ul li.server-item label.switch {
     float: right;
-    height: 2.125rem;
+    height: 2rem;
     position: relative;
-    width: 3.75rem;
+    width: 3.5rem;
 }
 
 #app nav#nav ul li.server-item label.switch input {
@@ -195,10 +200,10 @@ body {
     background-color: var(--nav-slider-fg-color);
     bottom: 0.25rem;
     content: "";
-    height: 1.625rem;
+    height: 1.5rem;
     left: 0.25rem;
     position: absolute;
-    width: 1.625rem;
+    width: 1.5rem;
 }
 
 #app nav#nav ul li.server-item label.switch input:checked+div.slider {
@@ -206,5 +211,5 @@ body {
 }
 
 #app nav#nav ul li.server-item label.switch input:checked+div.slider:before {
-    transform: translateX(1.625rem);
+    transform: translateX(1.5rem);
 }
