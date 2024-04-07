@@ -1,63 +1,75 @@
+/** Variables with colors */
+:root {
+    --main-bg-color: #ffffff;
+    --main-border-color: #9f9f9f;
+    --main-fg-color: #000000;
+    --nav-bg-color: #f4f4f4;
+    --nav-selected-color: #dfdfdf;
+    --nav-slider-active-bg-color: #66bb6a;
+    --nav-slider-bg-color: #cccccc;
+    --nav-slider-fg-color: #ffffff;
+    --nav-stderr-counter-color: #b12d2d;
+    --nav-stdout-counter-color: #29b829;
+    --stderr-bg-color: #d9a8a8;
+    --stderr-odd-bg-color: #d19797;
+    --stdout-bg-color: #a3dba3;
+    --stdout-odd-bg-color: #91d191;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --main-bg-color: #333333;
+        --main-border-color: #646464;
+        --main-fg-color: #ffffff;
+        --nav-bg-color: #222222;
+        --nav-selected-color: #3b3b3b;
+        --nav-stderr-counter-color: #e94848;
+        --nav-stdout-counter-color: #18c518;
+        --stderr-bg-color: #4d1f1f;
+        --stderr-odd-bg-color: #5a2929;
+        --stdout-bg-color: #316331;
+        --stdout-odd-bg-color: #3f693f;
+    }
+}
+
 /* CSS file */
 html {
     height: 100%;
 }
 
 body {
-    background-color: #ffffff;
-    color: #000000;
+    background-color: var(--main-bg-color);
+    color: var(--main-fg-color);
     font-family: monospace;
     height: 100%;
     margin: 0;
     padding: 0;
 }
 
-@media (prefers-color-scheme: dark) {
-    body {
-        background-color: #333333;
-        color: #ffffff;
-    }
-}
-
-#app {
-    display: flex;
-    height: 100%;
-}
-
+#app,
 #wrapper {
     display: flex;
+    height: 100%;
     width: 100%;
 }
 
 #app nav#nav {
-    background-color: #f4f4f4;
-    border-right: 1px solid black;
+    background-color: var(--nav-bg-color);
+    border-right: 1px solid var(--main-border-color);
     display: flex;
     flex-flow: column;
     width: 350px;
 }
 
-@media (prefers-color-scheme: dark) {
-    #app nav#nav {
-        background-color: #222222;
-    }
-}
-
 #app nav#nav h1 {
-    border-bottom: 1px solid black;
-    color: #000000;
+    border-bottom: 1px solid var(--main-border-color);
+    color: var(--main-fg-color);
     font-size: 26px;
     font-weight: normal;
     margin: 0;
     padding: 18px 8px;
     text-align: center;
     user-select: none;
-}
-
-@media (prefers-color-scheme: dark) {
-    #app nav#nav h1 {
-        color: #ffffff;
-    }
 }
 
 #app nav#nav ul {
@@ -76,32 +88,19 @@ body {
 }
 
 #app nav#nav ul li a {
-    color: #000000;
+    color: var(--main-fg-color);
 }
-
-@media (prefers-color-scheme: dark) {
-    #app nav#nav ul li a {
-        color: #ffffff;
-    }
-}
-
 
 #app nav#nav ul li.refresh-toggle {
-    border-bottom: 1px solid black;
+    border-bottom: 1px solid var(--main-border-color);
 }
 
 #app nav#nav ul li.selected {
-    background-color: #aaaaaa;
-}
-
-@media (prefers-color-scheme: dark) {
-    #app nav#nav ul li.selected {
-        background-color: #3b3b3b;
-    }
+    background-color: var(--nav-selected-color);
 }
 
 #app nav#nav aside.bottom-nav {
-    border-top: 1px solid black;
+    border-top: 1px solid var(--main-border-color);
     font-size: 18px;
     margin: 0;
     padding: 14px 6px;
@@ -110,13 +109,7 @@ body {
 }
 
 #app nav#nav aside.bottom-nav a {
-    color: #000000;
-}
-
-@media (prefers-color-scheme: dark) {
-    #app nav#nav aside.bottom-nav a {
-        color: #ffffff;
-    }
+    color: var(--main-fg-color);
 }
 
 #app div#content {
@@ -124,41 +117,21 @@ body {
 }
 
 #app div#content div#stderr-wrapper {
-    background-color: #d9a8a8;
+    background-color: var(--stderr-bg-color);
     height: 20%;
 }
 
 #app div#content div#stderr-wrapper div#stderr div:nth-child(odd) {
-    background-color: #ca8080;
-}
-
-@media (prefers-color-scheme: dark) {
-    #app div#content div#stderr-wrapper {
-        background-color: #4d1f1f;
-    }
-
-    #app div#content div#stderr-wrapper div#stderr div:nth-child(odd) {
-        background-color: #5a2929;
-    }
+    background-color: var(--stderr-odd-bg-color);
 }
 
 #app div#content div#stdout-wrapper {
-    background-color: #a3dba3;
+    background-color: var(--stdout-bg-color);
     height: 80%;
 }
 
 #app div#content div#stdout-wrapper div#stdout div:nth-child(odd) {
-    background-color: #7bca7b;
-}
-
-@media (prefers-color-scheme: dark) {
-    #app div#content div#stdout-wrapper {
-        background-color: #316331;
-    }
-
-    #app div#content div#stdout-wrapper div#stdout div:nth-child(odd) {
-        background-color: #3f693f;
-    }
+    background-color: var(--stdout-odd-bg-color);
 }
 
 #app div#content div#stdout-wrapper,
@@ -186,11 +159,11 @@ body {
 }
 
 #app nav#nav ul li.server-item span.log-item-count span.stderr {
-    color: #cf5454;
+    color: var(--nav-stderr-counter-color);
 }
 
 #app nav#nav ul li.server-item span.log-item-count span.stdout {
-    color: #51df51;
+    color: var(--nav-stdout-counter-color);
 }
 
 /* Nice toggle switch for input boxes */
@@ -206,7 +179,7 @@ body {
 }
 
 #app nav#nav ul li.server-item label.switch div.slider {
-    background-color: #cccccc;
+    background-color: var(--nav-slider-bg-color);
     bottom: 0;
     cursor: pointer;
     left: 0;
@@ -216,7 +189,7 @@ body {
 }
 
 #app nav#nav ul li.server-item label.switch div.slider:before {
-    background-color: #ffffff;
+    background-color: var(--nav-slider-fg-color);
     bottom: 4px;
     content: "";
     height: 26px;
@@ -226,7 +199,7 @@ body {
 }
 
 #app nav#nav ul li.server-item label.switch input:checked+div.slider {
-    background-color: #66bb6a;
+    background-color: var(--nav-slider-active-bg-color);
 }
 
 #app nav#nav ul li.server-item label.switch input:checked+div.slider:before {
