@@ -11,6 +11,51 @@ const App = () => {
     // Store state for selected server in the UI.
     const selectedServerState = van.state(localStorage.getItem('selectedServerState') ?? null)
 
+    // Store state for the key event
+    const keyEvent = van.state(new KeyboardEvent("keydown"))
+
+    // Listen for key events and update the keyEvent state
+    document.addEventListener('keydown', function (event) {
+        keyEvent.val = event
+    });
+
+    // Actually use the keydown state for something useful
+    van.derive(() => {
+        // If the key pressed is the escape key, then set the selected server state to null.
+        if (keyEvent.val.key === 'Escape') {
+            selectedServerState.val = null
+        }
+
+        // If the t key is pressed when on a selected server, toggle that servers state
+        if (keyEvent.val.key === 't' && selectedServerState.val && selectedServerState.val !== 'null') {
+            // Clear the event to prevent multiple toggles
+            keyEvent.val = new KeyboardEvent("keydown")
+
+            // Toggle the server state
+            toggleServer(selectedServerState.val)
+        }
+
+        // If the n key is pressed, set the selected server state to the next item in the list
+        if (keyEvent.val.key === 'n') {
+            const currentIndex = serverListState.val.findIndex(item => item.name === selectedServerState.val)
+            const nextIndex = currentIndex + 1
+
+            if (nextIndex < serverListState.val.length) {
+                selectedServerState.val = serverListState.val[nextIndex].name
+            }
+        }
+
+        // If the p key is pressed, set the selected server state to the previous item in the list
+        if (keyEvent.val.key === 'p') {
+            const currentIndex = serverListState.val.findIndex(item => item.name === selectedServerState.val)
+            const previousIndex = currentIndex - 1
+
+            if (previousIndex >= 0) {
+                selectedServerState.val = serverListState.val[previousIndex].name
+            }
+        }
+    })
+
     // Save the selected server state to local storage when it's updated.
     van.derive(() => {
         localStorage.setItem('selectedServerState', selectedServerState.val)
