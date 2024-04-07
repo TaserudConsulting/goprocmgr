@@ -30,22 +30,34 @@ body {
 }
 
 #app nav#nav {
-    background-color: #222222;
+    background-color: #f4f4f4;
     border-right: 1px solid black;
     display: flex;
     flex-flow: column;
     width: 350px;
 }
 
+@media (prefers-color-scheme: dark) {
+    #app nav#nav {
+        background-color: #222222;
+    }
+}
+
 #app nav#nav h1 {
     border-bottom: 1px solid black;
-    color: #ffffff;
+    color: #000000;
     font-size: 26px;
     font-weight: normal;
     margin: 0;
     padding: 18px 8px;
     text-align: center;
     user-select: none;
+}
+
+@media (prefers-color-scheme: dark) {
+    #app nav#nav h1 {
+        color: #ffffff;
+    }
 }
 
 #app nav#nav ul {
@@ -64,8 +76,15 @@ body {
 }
 
 #app nav#nav ul li a {
-    color: white;
+    color: #000000;
 }
+
+@media (prefers-color-scheme: dark) {
+    #app nav#nav ul li a {
+        color: #ffffff;
+    }
+}
+
 
 #app nav#nav ul li.refresh-toggle {
     border-bottom: 1px solid black;
@@ -91,7 +110,13 @@ body {
 }
 
 #app nav#nav aside.bottom-nav a {
-    color: #ffffff;
+    color: #000000;
+}
+
+@media (prefers-color-scheme: dark) {
+    #app nav#nav aside.bottom-nav a {
+        color: #ffffff;
+    }
 }
 
 #app div#content {
@@ -99,21 +124,41 @@ body {
 }
 
 #app div#content div#stderr-wrapper {
-    background-color: #4d1f1f;
+    background-color: #d9a8a8;
     height: 20%;
 }
 
 #app div#content div#stderr-wrapper div#stderr div:nth-child(odd) {
-    background-color: #5a2929;
+    background-color: #ca8080;
+}
+
+@media (prefers-color-scheme: dark) {
+    #app div#content div#stderr-wrapper {
+        background-color: #4d1f1f;
+    }
+
+    #app div#content div#stderr-wrapper div#stderr div:nth-child(odd) {
+        background-color: #5a2929;
+    }
 }
 
 #app div#content div#stdout-wrapper {
-    background-color: #316331;
+    background-color: #a3dba3;
     height: 80%;
 }
 
 #app div#content div#stdout-wrapper div#stdout div:nth-child(odd) {
-    background-color: #3f693f;
+    background-color: #7bca7b;
+}
+
+@media (prefers-color-scheme: dark) {
+    #app div#content div#stdout-wrapper {
+        background-color: #316331;
+    }
+
+    #app div#content div#stdout-wrapper div#stdout div:nth-child(odd) {
+        background-color: #3f693f;
+    }
 }
 
 #app div#content div#stdout-wrapper,
