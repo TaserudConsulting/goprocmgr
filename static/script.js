@@ -54,6 +54,11 @@ const App = () => {
                 selectedServerState.val = serverListState.val[previousIndex].name
             }
         }
+
+        // If the r key is pressed, toggle the pauseRefresh state
+        if (keyEvent.val.key === 'r') {
+            pauseRefresh.val = !pauseRefresh.val
+        }
     })
 
     // Save the selected server state to local storage when it's updated.
