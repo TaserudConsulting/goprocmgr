@@ -34,8 +34,8 @@
 
 /* CSS file */
 html {
-    height: 100%;
     font-size: 16px;
+    height: 100%;
 }
 
 body {
@@ -59,8 +59,8 @@ body {
     border-right: 0.1rem solid var(--main-border-color);
     display: flex;
     flex-flow: column;
-    width: 22rem;
     min-width: 22rem;
+    width: 22rem;
 }
 
 #app nav#nav h1 {
@@ -68,8 +68,8 @@ body {
     color: var(--main-fg-color);
     font-size: 1.5rem;
     font-weight: normal;
-    margin: 0;
     line-height: 4rem;
+    margin: 0;
     text-align: center;
     user-select: none;
 }
@@ -78,13 +78,13 @@ body {
     flex: 1;
     list-style-type: none;
     margin: 0;
-    padding: 0;
     overflow: scroll;
+    padding: 0;
 }
 
 #app nav#nav ul li {
-    line-height: 2.2rem;
     font-size: 1.1rem;
+    line-height: 2.2rem;
     padding: 0.5rem;
     user-select: none;
 }
@@ -104,9 +104,9 @@ body {
 #app nav#nav aside.bottom-nav {
     border-top: 0.1rem solid var(--main-border-color);
     font-size: 1.25rem;
-    margin: 0;
-    line-height: 3rem;
     font-weight: normal;
+    line-height: 3rem;
+    margin: 0;
     text-align: center;
 }
 
@@ -138,8 +138,8 @@ body {
 
 #app div#content div#stdout-wrapper,
 #app div#content div#stderr-wrapper {
-    overflow: auto;
     font-size: 0.8rem;
+    overflow: auto;
 }
 
 #app div#content div#stderr-wrapper div#stderr,
