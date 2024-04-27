@@ -23,6 +23,9 @@
         --main-fg-color: #ffffff;
         --nav-bg-color: #222222;
         --nav-selected-color: #3b3b3b;
+        --nav-slider-active-bg-color: #28772d;
+        --nav-slider-bg-color: #484848;
+        --nav-slider-fg-color: #b0b0b0;
         --nav-stderr-counter-color: #e94848;
         --nav-stdout-counter-color: #18c518;
         --stderr-bg-color: #4d1f1f;
