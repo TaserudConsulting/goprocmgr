@@ -1,240 +1,89 @@
-// JS File
 'use strict';
 
-const App = () => {
-    // State to pause the refresh of the server list
-    const pauseRefresh = van.state(false)
+document.addEventListener('alpine:init', () => {
+    Alpine.data('app', () => ({
+        pauseRefresh: false,
+        serverList: [],
+        selectedServer: localStorage.getItem('selectedServer') ?? null,
+        keyEvent: new KeyboardEvent("keydown"),
+        init() {
+            this.loadServers();
+            setInterval(() => this.loadServers(), 1000);
 
-    // Store state for the server list
-    const serverListState = van.state([])
+            document.addEventListener('keydown', (event) => {
+                this.keyEvent = event;
+                this.handleKeyEvents();
+            });
 
-    // Store state for selected server in the UI.
-    const selectedServerState = van.state(localStorage.getItem('selectedServerState') ?? null)
-
-    // Store state for the key event
-    const keyEvent = van.state(new KeyboardEvent("keydown"))
-
-    // Listen for key events and update the keyEvent state
-    document.addEventListener('keydown', function (event) {
-        keyEvent.val = event
-    });
-
-    // Actually use the keydown state for something useful
-    van.derive(() => {
-        // If the key pressed is the escape key, then set the selected server state to null.
-        if (keyEvent.val.key === 'Escape') {
-            selectedServerState.val = null
-        }
-
-        // If the t key is pressed when on a selected server, toggle that servers state
-        if (keyEvent.val.key === 't' && selectedServerState.val && selectedServerState.val !== 'null') {
-            // Clear the event to prevent multiple toggles
-            keyEvent.val = new KeyboardEvent("keydown")
-
-            // Toggle the server state
-            toggleServer(selectedServerState.val)
-        }
-
-        // If the n key is pressed, set the selected server state to the next item in the list
-        if (keyEvent.val.key === 'n') {
-            const currentIndex = serverListState.val.findIndex(item => item.name === selectedServerState.val)
-            const nextIndex = currentIndex + 1
-
-            if (nextIndex < serverListState.val.length) {
-                selectedServerState.val = serverListState.val[nextIndex].name
-            }
-        }
-
-        // If the p key is pressed, set the selected server state to the previous item in the list
-        if (keyEvent.val.key === 'p') {
-            const currentIndex = serverListState.val.findIndex(item => item.name === selectedServerState.val)
-            const previousIndex = currentIndex - 1
-
-            if (previousIndex >= 0) {
-                selectedServerState.val = serverListState.val[previousIndex].name
-            }
-        }
-
-        // If the r key is pressed, toggle the pauseRefresh state
-        if (keyEvent.val.key === 'r') {
-            pauseRefresh.val = !pauseRefresh.val
-        }
-    })
-
-    // Save the selected server state to local storage when it's updated.
-    van.derive(() => {
-        localStorage.setItem('selectedServerState', selectedServerState.val)
-    })
-
-    // This loads the current configured servers and their running state, then it updates
-    // the serverListState to update the rendered list.
-    const loadServers = async () => {
-        if (pauseRefresh.val) {
-            return
-        }
-
-        const configs = await (await fetch('/api/config')).json()
-        const runners = await (await fetch('/api/runner')).json()
-
-        serverListState.val = Object.keys(configs.servers).map(serverName => ({
-            name: serverName,
-            port: runners[serverName]?.port ?? 0,
-            running: (serverName in runners),
-            stdout: runners[serverName]?.stdout || [],
-            stderr: runners[serverName]?.stderr || [],
-        }))
-    }
-
-    // Actually load the state
-    loadServers()
-
-    // And refresh the state every second
-    setInterval(loadServers, 1000)
-
-    // Update serverListState for the object with the name of `name` to running state of `state`
-    const setServerListStateFor = (name, state) => {
-        serverListState.val = serverListState.val.map(item => {
-            if (item.name === name) {
-                return { ...item, running: state }
-            }
-            return item
-        })
-    }
-
-    // Get the running state of the server with the name of `name`
-    const getServerListStateFor = name => {
-        const server = serverListState.val.find(item => item.name === name);
-
-        return server ? server.running : false;
-    }
-
-    // Toggle the server with the name of `name`
-    const toggleServer = async (name) => {
-        if (getServerListStateFor(name)) {
-            await fetch(`/api/runner/${name}`, { method: 'DELETE' })
-            setServerListStateFor(name, false)
-            return
-        }
-
-        await fetch(`/api/runner/${name}`, { method: 'POST' })
-        setServerListStateFor(name, true)
-    }
-
-    // Object to render the actual items in the server list
-    const ServerItem = name => van.tags.li(
-        {
-            class: () => selectedServerState.val === name ? 'server-item selected' : 'server-item',
-            onclick: () => { selectedServerState.val = name }
+            this.$watch('selectedServer', (value) => {
+                localStorage.setItem('selectedServer', value);
+            });
         },
-        getServerListStateFor(name) ? van.tags.a(
-            { target: '_blank', href: `http://${window.location.hostname}:${serverListState.val.find(item => item.name === name)?.port ?? 0}` },
-            name,
-        ) : name,
-        getServerListStateFor(name) ? van.tags.span(
-            { class: 'log-item-count' },
-            ' (',
-            van.tags.span({ class: 'stderr' }, serverListState.val.find(item => item.name === name)?.stderr?.length ?? 0),
-            '/',
-            van.tags.span({ class: 'stdout' }, serverListState.val.find(item => item.name === name)?.stdout?.length ?? 0),
-            ')',
-        ) : null,
-        van.tags.label(
-            { class: 'switch', for: 'toggle-' + name },
-            van.tags.input({
-                type: 'checkbox',
-                id: 'toggle-' + name,
-                checked: getServerListStateFor(name),
-                onclick: () => toggleServer(name),
-            }),
-            van.tags.div({ class: 'slider' })
-        )
-    )
+        async loadServers() {
+            if (this.pauseRefresh) return;
 
+            const configs = await (await fetch('/api/config')).json();
+            const runners = await (await fetch('/api/runner')).json();
 
-    // Derive the server list state into a list of items to render
-    const serverList = van.derive(() => van.tags.ul(
-        { class: 'server-list' },
-        van.tags.li(
-            { class: 'server-item refresh-toggle' },
-            'auto refresh',
-            van.tags.label(
-                { class: 'switch', for: 'refresh-toggle' },
-                van.tags.input({
-                    type: 'checkbox',
-                    id: 'refresh-toggle',
-                    checked: () => !pauseRefresh.val ? 'checked' : null,
-                    onclick: () => { pauseRefresh.val = !pauseRefresh.val },
-                }),
-                van.tags.div({ class: 'slider' })
-            )
-        ),
-        serverListState.val.map(item => ServerItem(item.name))
-    ))
+            this.serverList = Object.keys(configs.servers).map(serverName => ({
+                name: serverName,
+                port: runners[serverName]?.port ?? 0,
+                running: (serverName in runners),
+                stdout: runners[serverName]?.stdout || [],
+                stderr: runners[serverName]?.stderr || [],
+            }));
+        },
+        async toggleServer(name) {
+            if (this.getServer(name).running) {
+                await fetch(`/api/runner/${name}`, { method: 'DELETE' });
+                this.setServerState(name, false);
+            } else {
+                await fetch(`/api/runner/${name}`, { method: 'POST' });
+                this.setServerState(name, true);
+            }
+        },
+        setServerState(name, state) {
+            this.serverList = this.serverList.map(item => {
+                if (item.name === name) {
+                    return { ...item, running: state };
+                }
+                return item;
+            });
+        },
+        getServer(name) {
+            return this.serverList.find(item => item.name === name) || {};
+        },
+        handleKeyEvents() {
+            if (this.keyEvent.key === 'Escape') {
+                this.selectedServer = null;
+            }
 
-    // Derive the selection state to render the main viewer
-    const mainViewer = van.derive(() => {
-        // Render the stderr of the selected server, however it will render the newest
-        // lines at the top of the viewer.
-        const stderrViewer = name => {
-            const server = serverListState.val.find(item => item.name === name);
-            const stderrLogLines = server?.stderr || [];
+            if (this.keyEvent.key === 't' && this.selectedServer) {
+                this.keyEvent = new KeyboardEvent("keydown");
+                this.toggleServer(this.selectedServer);
+            }
 
-            return van.tags.div(
-                { id: 'stderr-wrapper' },
-                van.tags.div(
-                    { id: 'stderr' },
-                    stderrLogLines.reverse().map(line => van.tags.div(line))
-                )
-            );
-        }
+            if (this.keyEvent.key === 'n') {
+                const currentIndex = this.serverList.findIndex(item => item.name === this.selectedServer);
+                const nextIndex = currentIndex + 1;
 
-        // Render the stdout of the selected server, however it will render the newest
-        // lines at the top of the viewer.
-        const stdoutViewer = name => {
-            const server = serverListState.val.find(item => item.name === name && item.stdout !== null);
-            const stdoutLogLines = server?.stdout || [];
+                if (nextIndex < this.serverList.length) {
+                    this.selectedServer = this.serverList[nextIndex].name;
+                }
+            }
 
-            return van.tags.div(
-                { id: 'stdout-wrapper' },
-                van.tags.div(
-                    { id: 'stdout' },
-                    stdoutLogLines.reverse().map(line => van.tags.div(line))
-                )
-            );
-        }
+            if (this.keyEvent.key === 'p') {
+                const currentIndex = this.serverList.findIndex(item => item.name === this.selectedServer);
+                const previousIndex = currentIndex - 1;
 
-        // Select a welcome message based on if there's servers or not.
-        const welcomeMessage = (serverListState.val.length === 0) ? 'No servers configured yet :)' : 'Select a server to view its logs :)'
+                if (previousIndex >= 0) {
+                    this.selectedServer = this.serverList[previousIndex].name;
+                }
+            }
 
-        return van.tags.div(
-            { id: 'content' },
-            (!selectedServerState.val || selectedServerState.val === 'null') ? van.tags.div({ id: 'frontpage' }, welcomeMessage) : null,
-            (!getServerListStateFor(selectedServerState.val) && selectedServerState.val !== 'null' && selectedServerState.val !== null) ?
-                van.tags.div({ id: 'frontpage' }, 'Server "', selectedServerState.val, '" is currently not started :)') : null,
-            (getServerListStateFor(selectedServerState.val) && !!selectedServerState.val) ? stderrViewer(selectedServerState.val) : null,
-            (getServerListStateFor(selectedServerState.val) && !!selectedServerState.val) ? stdoutViewer(selectedServerState.val) : null,
-        )
-    })
-
-    return van.tags.div(
-        { id: 'wrapper' },
-        van.tags.nav(
-            { id: 'nav' },
-            van.tags.h1(
-                { onclick: () => { selectedServerState.val = null } },
-                'goprocmgr'
-            ),
-            serverList,
-            van.tags.aside(
-                { class: 'bottom-nav' },
-                van.tags.a(
-                    { href: 'https://github.com/TaserudConsulting/goprocmgr', target: '_blank' },
-                    'GitHub'
-                ),
-            )
-        ),
-        mainViewer,
-    )
-}
-
-van.add(document.getElementById('app'), App());
+            if (this.keyEvent.key === 'r') {
+                this.pauseRefresh = !this.pauseRefresh;
+            }
+        },
+    }));
+});

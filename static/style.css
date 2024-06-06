@@ -121,6 +121,10 @@ body {
     flex: 1;
 }
 
+#app div#content>div {
+    height: 100%;
+}
+
 #app div#content div#stderr-wrapper {
     background-color: var(--stderr-bg-color);
     height: 20%;

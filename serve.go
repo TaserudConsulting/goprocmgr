@@ -62,7 +62,7 @@ func (serve *Serve) newRouter() *mux.Router {
 	router.HandleFunc("/", serveFile("static/index.html", "text/html"))
 	router.HandleFunc("/web/style.css", serveFile("static/style.css", "text/css"))
 	router.HandleFunc("/web/script.js", serveFile("static/script.js", "application/javascript"))
-	router.HandleFunc("/web/van-1.5.0.nomodule.min.js", serveFile("static/van-1.5.0.nomodule.min.js", "application/javascript"))
+	router.HandleFunc("/web/alpinejs-3.14.0.min.js", serveFile("static/alpinejs-3.14.0.min.js", "application/javascript"))
 
 	// This endpoint is served at GET /api/config and it returns the
 	// currently loaded config.

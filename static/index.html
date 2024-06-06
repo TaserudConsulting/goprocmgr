@@ -3,11 +3,67 @@
     <head>
         <title>goprocmgr</title>
         <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" type="text/css" href="/web/style.css">
     </head>
     <body>
-        <div id="app"></div>
-        <script src="/web/van-1.5.0.nomodule.min.js"></script>
+        <div id="app" x-data="app">
+            <div id="wrapper">
+                <nav id="nav">
+                    <h1 @click="selectedServer = null">goprocmgr</h1>
+                    <ul class="server-list">
+                        <li class="server-item refresh-toggle">
+                            auto refresh
+                            <label class="switch" for="refresh-toggle">
+                                <input type="checkbox" id="refresh-toggle" :checked="!pauseRefresh" @click="pauseRefresh = !pauseRefresh">
+                                <div class="slider"></div>
+                            </label>
+                        </li>
+                        <template x-for="server in serverList">
+                            <li :class="selectedServer === server.name ? 'server-item selected' : 'server-item'" @click="selectedServer = server.name">
+                                <template x-if="server.running">
+                                    <a :href="`http://${window.location.hostname}:${server.port}`" target="_blank" x-text="server.name"></a>
+                                </template>
+                                <template x-if="!server.running"><span x-text="server.name"></span></template>
+                                <template x-if="server.running">
+                                    <span class="log-item-count">
+                                        (<span class="stderr" x-text="server.stderr.length"></span>/<span class="stdout" x-text="server.stdout.length"></span>)
+                                    </span>
+                                </template>
+                                <label class="switch" :for="'toggle-' + server.name">
+                                    <input type="checkbox" :id="'toggle-' + server.name" :checked="server.running" @click.stop="toggleServer(server.name)">
+                                    <div class="slider"></div>
+                                </label>
+                            </li>
+                        </template>
+                    </ul>
+                    <aside class="bottom-nav">
+                        <a href="https://github.com/TaserudConsulting/goprocmgr" target="_blank">GitHub</a>
+                    </aside>
+                </nav>
+                <div id="content">
+                    <div x-show="!selectedServer" id="frontpage" x-text="serverList.length === 0 ? 'No servers configured yet :)' : 'Select a server to view its logs :)'"></div>
+                    <div x-show="selectedServer && !getServer(selectedServer).running" id="frontpage">Server "<span x-text="selectedServer"></span>" is currently not started :)</div>
+                    <div x-show="selectedServer && getServer(selectedServer).running">
+                        <div id="stderr-wrapper">
+                            <div id="stderr">
+                                <template x-for="line in [...getServer(selectedServer).stderr].reverse()">
+                                    <div x-text="line"></div>
+                                </template>
+                            </div>
+                        </div>
+                        <div id="stdout-wrapper">
+                            <div id="stdout">
+                                <template x-for="line in [...getServer(selectedServer).stdout].reverse()">
+                                    <div x-text="line"></div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <script src="/web/script.js"></script>
+        <script src="/web/alpinejs-3.14.0.min.js"></script>
     </body>
 </html>
