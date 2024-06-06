@@ -62,6 +62,22 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Popup for keybinds -->
+            <div x-show="showKeybinds" class="popup">
+                <div class="popup-content">
+                    <h2>Keybinds</h2>
+                    <ul>
+                        <li><strong>Esc</strong>: Deselect server</li>
+                        <li><strong>t</strong>: Toggle server state</li>
+                        <li><strong>n</strong>: Select next server</li>
+                        <li><strong>p</strong>: Select previous server</li>
+                        <li><strong>r</strong>: Toggle auto refresh</li>
+                        <li><strong>h</strong>: Show this help popup</li>
+                    </ul>
+                    <button @click="showKeybinds = false">Close</button>
+                </div>
+            </div>
         </div>
         <script src="/web/script.js"></script>
         <script src="/web/alpinejs-3.14.0.min.js"></script>

@@ -6,6 +6,7 @@ document.addEventListener('alpine:init', () => {
         serverList: [],
         selectedServer: localStorage.getItem('selectedServer') ?? null,
         keyEvent: new KeyboardEvent("keydown"),
+        showKeybinds: false,
         init() {
             this.loadServers();
             setInterval(() => this.loadServers(), 1000);
@@ -83,6 +84,10 @@ document.addEventListener('alpine:init', () => {
 
             if (this.keyEvent.key === 'r') {
                 this.pauseRefresh = !this.pauseRefresh;
+            }
+
+            if (this.keyEvent.key === 'h') {
+                this.showKeybinds = !this.showKeybinds;
             }
         },
     }));
