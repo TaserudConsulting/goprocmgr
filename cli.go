@@ -2,6 +2,7 @@ package main // import "github.com/TaserudConsulting/goprocmgr"
 
 import (
 	"bytes"
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -18,7 +19,7 @@ type Cli struct {
 	config *Config
 }
 
-func (cli *Cli) List() {
+func (cli *Cli) List(format string) {
 	var state ServeFullState
 
 	// Build URL based on config
@@ -45,21 +46,40 @@ func (cli *Cli) List() {
 	// Parse the json
 	json.Unmarshal(body, &state)
 
-	output := table.NewWriter()
-	output.SetOutputMirror(os.Stdout)
-	output.AppendHeader(table.Row{"Name", "Running", "Directory", "Command"})
+	switch format {
+	case "table":
+		output := table.NewWriter()
+		output.SetOutputMirror(os.Stdout)
+		output.AppendHeader(table.Row{"Name", "Running", "Directory", "Command"})
 
-	for _, val := range state.Config.Servers {
-		isRunning := false
+		for _, val := range state.Config.Servers {
+			isRunning := false
 
-		if _, ok := state.RunnerState[val.Name]; ok {
-			isRunning = true
+			if _, ok := state.RunnerState[val.Name]; ok {
+				isRunning = true
+			}
+
+			output.AppendRow([]interface{}{val.Name, isRunning, val.Directory, val.Command})
 		}
 
-		output.AppendRow([]interface{}{val.Name, isRunning, val.Directory, val.Command})
-	}
+		output.Render()
 
-	output.Render()
+	case "csv":
+		output := csv.NewWriter(os.Stdout)
+		defer output.Flush()
+
+		output.Write([]string{"Name", "Running", "Directory", "Command"})
+
+		for _, val := range state.Config.Servers {
+			isRunning := false
+
+			if _, ok := state.RunnerState[val.Name]; ok {
+				isRunning = true
+			}
+
+			output.Write([]string{val.Name, fmt.Sprintf("%t", isRunning), val.Directory, val.Command})
+		}
+	}
 }
 
 func (cli *Cli) Add(command string) {

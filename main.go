@@ -10,6 +10,7 @@ func main() {
 	var configFile string
 	var addFlag string
 	var listFlag bool
+	var listFormat string
 	var versionFlag bool
 	var serveFlag bool
 	var removeFlag string
@@ -20,6 +21,7 @@ func main() {
 	flag.StringVar(&configFile, "config", config.GuessFileName(""), "Specify config file")
 	flag.BoolVar(&serveFlag, "serve", true, "Run the serve command (start the web server)")
 	flag.BoolVar(&listFlag, "list", false, "List the stored servers")
+	flag.StringVar(&listFormat, "list-format", "table", "List format (table, csv) when using the list command")
 	flag.BoolVar(&versionFlag, "version", false, "Print the version")
 	flag.StringVar(&addFlag, "add", "", "Add a new server, will capture the current directory and environment and then takes the command as an argument")
 	flag.StringVar(&removeFlag, "remove", "", "Remove an existing server by it's name")
@@ -41,7 +43,7 @@ func main() {
 
 	switch true {
 	case listFlag:
-		cli.List()
+		cli.List(listFormat)
 
 	case len(addFlag) > 0:
 		cli.Add(addFlag)
