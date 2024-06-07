@@ -3,7 +3,7 @@
 document.addEventListener('alpine:init', () => {
     Alpine.data('app', () => ({
         serverList: [],
-        selectedServer: localStorage.getItem('selectedServer') ?? null,
+        selectedServer: localStorage.getItem('selectedServer') === 'null' ? null : localStorage.getItem('selectedServer'),
         keyEvent: new KeyboardEvent("keydown"),
         showKeybinds: false,
         ws: null,
