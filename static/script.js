@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 document.addEventListener('alpine:init', () => {
     Alpine.data('app', () => ({
@@ -8,22 +8,22 @@ document.addEventListener('alpine:init', () => {
         showKeybinds: false,
         ws: null,
         init() {
-            this.setupWebSocket();
+            this.setupWebSocket()
 
             document.addEventListener('keydown', (event) => {
-                this.keyEvent = event;
-                this.handleKeyEvents();
-            });
+                this.keyEvent = event
+                this.handleKeyEvents()
+            })
 
             this.$watch('selectedServer', (value) => {
-                localStorage.setItem('selectedServer', value);
-            });
+                localStorage.setItem('selectedServer', value)
+            })
         },
         setupWebSocket() {
-            this.ws = new WebSocket('ws://' + window.location.hostname + ':6969/api/ws');
+            this.ws = new WebSocket('ws://' + window.location.hostname + ':6969/api/ws')
 
             this.ws.onmessage = (event) => {
-                const data = JSON.parse(event.data);
+                const data = JSON.parse(event.data)
 
                 this.serverList = Object.keys(data.configs.servers).map(serverName => ({
                     name: serverName,
@@ -31,60 +31,60 @@ document.addEventListener('alpine:init', () => {
                     running: (serverName in data.runners),
                     stdout: data.runners[serverName]?.stdout || [],
                     stderr: data.runners[serverName]?.stderr || [],
-                }));
-            };
+                }))
+            }
         },
         async toggleServer(name) {
             if (this.getServer(name).running) {
-                await fetch(`/api/runner/${name}`, { method: 'DELETE' });
-                this.setServerState(name, false);
+                await fetch(`/api/runner/${name}`, { method: 'DELETE' })
+                this.setServerState(name, false)
             } else {
-                await fetch(`/api/runner/${name}`, { method: 'POST' });
-                this.setServerState(name, true);
+                await fetch(`/api/runner/${name}`, { method: 'POST' })
+                this.setServerState(name, true)
             }
         },
         setServerState(name, state) {
             this.serverList = this.serverList.map(item => {
                 if (item.name === name) {
-                    return { ...item, running: state };
+                    return { ...item, running: state }
                 }
-                return item;
-            });
+                return item
+            })
         },
         getServer(name) {
-            return this.serverList.find(item => item.name === name) || {};
+            return this.serverList.find(item => item.name === name) || {}
         },
         handleKeyEvents() {
             if (this.keyEvent.key === 'Escape') {
-                this.selectedServer = null;
+                this.selectedServer = null
             }
 
             if (this.keyEvent.key === 't' && this.selectedServer) {
-                this.keyEvent = new KeyboardEvent("keydown");
-                this.toggleServer(this.selectedServer);
+                this.keyEvent = new KeyboardEvent("keydown")
+                this.toggleServer(this.selectedServer)
             }
 
             if (this.keyEvent.key === 'n') {
-                const currentIndex = this.serverList.findIndex(item => item.name === this.selectedServer);
-                const nextIndex = currentIndex + 1;
+                const currentIndex = this.serverList.findIndex(item => item.name === this.selectedServer)
+                const nextIndex = currentIndex + 1
 
                 if (nextIndex < this.serverList.length) {
-                    this.selectedServer = this.serverList[nextIndex].name;
+                    this.selectedServer = this.serverList[nextIndex].name
                 }
             }
 
             if (this.keyEvent.key === 'p') {
-                const currentIndex = this.serverList.findIndex(item => item.name === this.selectedServer);
-                const previousIndex = currentIndex - 1;
+                const currentIndex = this.serverList.findIndex(item => item.name === this.selectedServer)
+                const previousIndex = currentIndex - 1
 
                 if (previousIndex >= 0) {
-                    this.selectedServer = this.serverList[previousIndex].name;
+                    this.selectedServer = this.serverList[previousIndex].name
                 }
             }
 
             if (this.keyEvent.key === 'h') {
-                this.showKeybinds = !this.showKeybinds;
+                this.showKeybinds = !this.showKeybinds
             }
         },
-    }));
-});
+    }))
+})
