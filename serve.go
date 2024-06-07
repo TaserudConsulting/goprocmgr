@@ -28,10 +28,9 @@ type ServeMessageResponse struct {
 }
 
 type ServeRunnerResponseItem struct {
-	Name   string   `json:"name"`
-	Port   uint     `json:"port"`
-	Stdout []string `json:"stdout"`
-	Stderr []string `json:"stderr"`
+	Name string     `json:"name"`
+	Port uint       `json:"port"`
+	Logs []LogEntry `json:"logs"`
 }
 
 func (serve *Serve) Run() {
@@ -182,10 +181,9 @@ func (serve *Serve) newRouter() *mux.Router {
 
 		for key, value := range serve.runner.ActiveProcesses {
 			state.RunnerState[key] = ServeRunnerResponseItem{
-				Name:   key,
-				Port:   value.Port,
-				Stdout: value.Stdout,
-				Stderr: value.Stderr,
+				Name: key,
+				Port: value.Port,
+				Logs: value.Logs,
 			}
 		}
 
@@ -215,10 +213,9 @@ func (serve *Serve) newRouter() *mux.Router {
 
 			for key, value := range serve.runner.ActiveProcesses {
 				state.RunnerState[key] = ServeRunnerResponseItem{
-					Name:   key,
-					Port:   value.Port,
-					Stdout: value.Stdout,
-					Stderr: value.Stderr,
+					Name: key,
+					Port: value.Port,
+					Logs: value.Logs,
 				}
 			}
 

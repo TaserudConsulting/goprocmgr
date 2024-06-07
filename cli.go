@@ -247,8 +247,7 @@ func (cli *Cli) Stop(name string) {
 
 func (cli *Cli) Logs(name string) {
 	var state ServeFullState
-	stdoutMaxIndex := -1
-	stderrMaxIndex := -1
+	logsMaxIndex := -1
 
 	// Build URL to fetch runners
 	runnerRequestUrl := fmt.Sprintf("http://%s:%d/api/state", cli.config.Settings.ListenAddress, cli.config.Settings.ListenPort)
@@ -280,22 +279,12 @@ func (cli *Cli) Logs(name string) {
 			os.Exit(3)
 		}
 
-		// Tail stdout
+		// Tail logs
 		go func() {
-			for key, val := range state.RunnerState[name].Stdout {
-				if key > stdoutMaxIndex {
-					fmt.Println("stdout>", val)
-					stdoutMaxIndex = key
-				}
-			}
-		}()
-
-		// Tail stderr
-		go func() {
-			for key, val := range state.RunnerState[name].Stderr {
-				if key > stderrMaxIndex {
-					fmt.Println("stderr>", val)
-					stderrMaxIndex = key
+			for key, val := range state.RunnerState[name].Logs {
+				if key > logsMaxIndex {
+					fmt.Println(val.Output+">", val.Message)
+					logsMaxIndex = key
 				}
 			}
 		}()

@@ -17,11 +17,16 @@ type Runner struct {
 	ActiveProcesses map[string]*ActiveRunner
 }
 
+type LogEntry struct {
+	Timestamp time.Time `json:"timestamp"`
+	Message   string    `json:"message"`
+	Output    string    `json:"output"`
+}
+
 type ActiveRunner struct {
-	Cmd    *exec.Cmd
-	Port   uint
-	Stdout []string
-	Stderr []string
+	Cmd  *exec.Cmd
+	Port uint
+	Logs []LogEntry
 }
 
 func (runner *Runner) Start(name string) error {
@@ -114,7 +119,12 @@ func (runner *Runner) Start(name string) error {
 	stdoutScanner := bufio.NewScanner(stdout)
 	go func() {
 		for stdoutScanner.Scan() {
-			activeRunner.Stdout = append(activeRunner.Stdout, stdoutScanner.Text())
+			// Log it to the common log
+			activeRunner.Logs = append(activeRunner.Logs, LogEntry{
+				Timestamp: time.Now(),
+				Message:   stdoutScanner.Text(),
+				Output:    "stdout",
+			})
 		}
 	}()
 
@@ -122,7 +132,12 @@ func (runner *Runner) Start(name string) error {
 	stderrScanner := bufio.NewScanner(stderr)
 	go func() {
 		for stderrScanner.Scan() {
-			activeRunner.Stderr = append(activeRunner.Stderr, stderrScanner.Text())
+			// Log it to the common log
+			activeRunner.Logs = append(activeRunner.Logs, LogEntry{
+				Timestamp: time.Now(),
+				Message:   stderrScanner.Text(),
+				Output:    "stderr",
+			})
 		}
 	}()
 

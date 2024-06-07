@@ -29,8 +29,7 @@ document.addEventListener('alpine:init', () => {
                     name: serverName,
                     port: data.runners[serverName]?.port ?? 0,
                     running: (serverName in data.runners),
-                    stdout: data.runners[serverName]?.stdout || [],
-                    stderr: data.runners[serverName]?.stderr || [],
+                    logs: data.runners[serverName]?.logs || [],
                 }))
             }
         },
@@ -53,6 +52,9 @@ document.addEventListener('alpine:init', () => {
         },
         getServer(name) {
             return this.serverList.find(item => item.name === name) || {}
+        },
+        countLogsByOutput(name, output) {
+            return this.getServer(name).logs.filter(log => log.output === output).length
         },
         handleKeyEvents() {
             if (this.keyEvent.key === 'Escape') {

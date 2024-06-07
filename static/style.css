@@ -11,9 +11,7 @@
     --nav-stderr-counter-color: #b12d2d;
     --nav-stdout-counter-color: #29b829;
     --stderr-bg-color: #d9a8a8;
-    --stderr-odd-bg-color: #d19797;
     --stdout-bg-color: #a3dba3;
-    --stdout-odd-bg-color: #91d191;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -29,9 +27,7 @@
         --nav-stderr-counter-color: #e94848;
         --nav-stdout-counter-color: #18c518;
         --stderr-bg-color: #4d1f1f;
-        --stderr-odd-bg-color: #5a2929;
         --stdout-bg-color: #316331;
-        --stdout-odd-bg-color: #3f693f;
     }
 }
 
@@ -121,38 +117,18 @@ body {
     height: 100%;
 }
 
-#app div#content div#stderr-wrapper {
-    background-color: var(--stderr-bg-color);
-    height: 20%;
-}
-
-#app div#content div#stderr-wrapper div#stderr div:nth-child(odd) {
-    background-color: var(--stderr-odd-bg-color);
-}
-
-#app div#content div#stdout-wrapper {
-    background-color: var(--stdout-bg-color);
-    height: 80%;
-}
-
-#app div#content div#stdout-wrapper div#stdout div:nth-child(odd) {
-    background-color: var(--stdout-odd-bg-color);
-}
-
-#app div#content div#stdout-wrapper,
-#app div#content div#stderr-wrapper {
+#app div#content div#logs-wrapper {
+    height: 100%;
     font-size: 0.8rem;
     overflow: auto;
 }
 
-#app div#content div#stderr-wrapper div#stderr,
-#app div#content div#stdout-wrapper div#stdout {
-    padding: 0.25rem 0;
+#app div#content div#logs-wrapper div.stdout {
+    background-color: var(--stdout-bg-color);
 }
 
-#app div#content div#stderr-wrapper div#stderr div,
-#app div#content div#stdout-wrapper div#stdout div {
-    padding: 0 0.25rem;
+#app div#content div#logs-wrapper div.stderr {
+    background-color: var(--stderr-bg-color);
 }
 
 #app div#content div#frontpage {
