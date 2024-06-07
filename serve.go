@@ -203,6 +203,8 @@ func (serve *Serve) newRouter() *mux.Router {
 		}
 		defer conn.Close()
 
+		var lastState []byte
+
 		// Return runner state over the websocket
 		for {
 			var state = ServeFullState{
@@ -226,10 +228,19 @@ func (serve *Serve) newRouter() *mux.Router {
 				return
 			}
 
+			if string(stateJson) == string(lastState) {
+				// Sleep a bit to then try again
+				time.Sleep(time.Millisecond * 100)
+
+				// Continue to next iteration
+				continue
+			}
+
+			// Send the updated state
 			conn.WriteMessage(1, stateJson)
 
-			// Sleep a second
-			time.Sleep(time.Second)
+			// Update last state
+			lastState = stateJson
 		}
 	})
 
