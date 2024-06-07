@@ -74,6 +74,7 @@ func (serve *Serve) newRouter() *mux.Router {
 	// Web server endpoints
 	//
 	router.HandleFunc("/", serveFile("static/index.html", "text/html"))
+	router.HandleFunc("/web/favicon.png", serveFile("static/favicon.png", "image/png"))
 	router.HandleFunc("/web/style.css", serveFile("static/style.css", "text/css"))
 	router.HandleFunc("/web/script.js", serveFile("static/script.js", "application/javascript"))
 	router.HandleFunc("/web/alpinejs-3.14.0.min.js", serveFile("static/alpinejs-3.14.0.min.js", "application/javascript"))
