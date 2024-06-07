@@ -44,8 +44,8 @@ through the same port, just with different domains (like `service1.local`).
 ## TODO
 
 - [X] Implement `direnv` support `direnv exec $dirname $command`.
-- [X] Implement "pause" function in the web interface.
 - [X] Implement keybind support in the web interface (`esc` to unselect server,
-      `t` to toggle server, `n` for next server, `p` for previous server, `r` to toggle pause refresh).
+      `t` to toggle server, `n` for next server, `p` for previous server).
 - [X] Implement an overview of the keybind in the web interface (press `h` to display popup).
+- [X] Refresh data and interface over websockets.
 - Implement a getting started overview in the web interface on the frontpage.

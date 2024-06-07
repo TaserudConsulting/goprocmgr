@@ -96,10 +96,6 @@ body {
     color: var(--main-fg-color);
 }
 
-#app nav#nav ul li.refresh-toggle {
-    border-bottom: 0.1rem solid var(--main-border-color);
-}
-
 #app nav#nav ul li.selected {
     background-color: var(--nav-selected-color);
 }

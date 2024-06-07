@@ -2,14 +2,13 @@
 
 document.addEventListener('alpine:init', () => {
     Alpine.data('app', () => ({
-        pauseRefresh: false,
         serverList: [],
         selectedServer: localStorage.getItem('selectedServer') ?? null,
         keyEvent: new KeyboardEvent("keydown"),
         showKeybinds: false,
+        ws: null,
         init() {
-            this.loadServers();
-            setInterval(() => this.loadServers(), 1000);
+            this.setupWebSocket();
 
             document.addEventListener('keydown', (event) => {
                 this.keyEvent = event;
@@ -20,19 +19,20 @@ document.addEventListener('alpine:init', () => {
                 localStorage.setItem('selectedServer', value);
             });
         },
-        async loadServers() {
-            if (this.pauseRefresh) return;
+        setupWebSocket() {
+            this.ws = new WebSocket('ws://' + window.location.hostname + ':6969/api/ws');
 
-            const configs = await (await fetch('/api/config')).json();
-            const runners = await (await fetch('/api/runner')).json();
+            this.ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
 
-            this.serverList = Object.keys(configs.servers).map(serverName => ({
-                name: serverName,
-                port: runners[serverName]?.port ?? 0,
-                running: (serverName in runners),
-                stdout: runners[serverName]?.stdout || [],
-                stderr: runners[serverName]?.stderr || [],
-            }));
+                this.serverList = Object.keys(data.configs.servers).map(serverName => ({
+                    name: serverName,
+                    port: data.runners[serverName]?.port ?? 0,
+                    running: (serverName in data.runners),
+                    stdout: data.runners[serverName]?.stdout || [],
+                    stderr: data.runners[serverName]?.stderr || [],
+                }));
+            };
         },
         async toggleServer(name) {
             if (this.getServer(name).running) {
@@ -80,10 +80,6 @@ document.addEventListener('alpine:init', () => {
                 if (previousIndex >= 0) {
                     this.selectedServer = this.serverList[previousIndex].name;
                 }
-            }
-
-            if (this.keyEvent.key === 'r') {
-                this.pauseRefresh = !this.pauseRefresh;
             }
 
             if (this.keyEvent.key === 'h') {

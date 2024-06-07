@@ -19,11 +19,10 @@ type Cli struct {
 }
 
 func (cli *Cli) List() {
-	var config Config
-	var runners map[string]ServeRunnerResponseItem
+	var state ServeFullState
 
 	// Build URL based on config
-	requestUrl := fmt.Sprintf("http://%s:%d/api/config", cli.config.Settings.ListenAddress, cli.config.Settings.ListenPort)
+	requestUrl := fmt.Sprintf("http://%s:%d/api/state", cli.config.Settings.ListenAddress, cli.config.Settings.ListenPort)
 
 	// Do request to running instance of program
 	res, err := http.Get(requestUrl)
@@ -44,40 +43,16 @@ func (cli *Cli) List() {
 	body, _ := io.ReadAll(res.Body)
 
 	// Parse the json
-	json.Unmarshal(body, &config)
-
-	// Build URL to fetch runners
-	runnerRequestUrl := fmt.Sprintf("http://%s:%d/api/runner", cli.config.Settings.ListenAddress, cli.config.Settings.ListenPort)
-
-	// Do request to running instance of program to get running processes
-	runnerRes, err := http.Get(runnerRequestUrl)
-
-	if err != nil {
-		log.Printf("Failed to connect to running instance of program: %s\n", err)
-		os.Exit(1)
-	}
-
-	// Validate status code
-	if runnerRes.StatusCode != http.StatusOK {
-		log.Printf("Unexpected status code when fetching runner processes: %d\n", runnerRes.StatusCode)
-		os.Exit(2)
-	}
-
-	// Read the body content
-	defer runnerRes.Body.Close()
-	runnerBody, _ := io.ReadAll(runnerRes.Body)
-
-	// Parse the json
-	json.Unmarshal(runnerBody, &runners)
+	json.Unmarshal(body, &state)
 
 	output := table.NewWriter()
 	output.SetOutputMirror(os.Stdout)
 	output.AppendHeader(table.Row{"Name", "Running", "Directory", "Command"})
 
-	for _, val := range config.Servers {
+	for _, val := range state.Config.Servers {
 		isRunning := false
 
-		if _, ok := runners[val.Name]; ok {
+		if _, ok := state.RunnerState[val.Name]; ok {
 			isRunning = true
 		}
 
@@ -251,12 +226,12 @@ func (cli *Cli) Stop(name string) {
 }
 
 func (cli *Cli) Logs(name string) {
-	var runners map[string]ServeRunnerResponseItem
+	var state ServeFullState
 	stdoutMaxIndex := -1
 	stderrMaxIndex := -1
 
 	// Build URL to fetch runners
-	runnerRequestUrl := fmt.Sprintf("http://%s:%d/api/runner", cli.config.Settings.ListenAddress, cli.config.Settings.ListenPort)
+	runnerRequestUrl := fmt.Sprintf("http://%s:%d/api/state", cli.config.Settings.ListenAddress, cli.config.Settings.ListenPort)
 
 	for {
 		// Do request to running instance of program to get running processes
@@ -278,16 +253,16 @@ func (cli *Cli) Logs(name string) {
 		runnerBody, _ := io.ReadAll(runnerRes.Body)
 
 		// Parse the json
-		json.Unmarshal(runnerBody, &runners)
+		json.Unmarshal(runnerBody, &state)
 
-		if _, ok := runners[name]; !ok {
+		if _, ok := state.RunnerState[name]; !ok {
 			log.Printf("Process '%s' doesn't seem to be running", name)
 			os.Exit(3)
 		}
 
 		// Tail stdout
 		go func() {
-			for key, val := range runners[name].Stdout {
+			for key, val := range state.RunnerState[name].Stdout {
 				if key > stdoutMaxIndex {
 					fmt.Println("stdout>", val)
 					stdoutMaxIndex = key
@@ -297,7 +272,7 @@ func (cli *Cli) Logs(name string) {
 
 		// Tail stderr
 		go func() {
-			for key, val := range runners[name].Stderr {
+			for key, val := range state.RunnerState[name].Stderr {
 				if key > stderrMaxIndex {
 					fmt.Println("stderr>", val)
 					stderrMaxIndex = key

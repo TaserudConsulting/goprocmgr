@@ -7,13 +7,20 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
 )
 
 type Serve struct {
 	config *Config
 	runner *Runner
+}
+
+type ServeFullState struct {
+	Config      *Config                            `json:"configs"`
+	RunnerState map[string]ServeRunnerResponseItem `json:"runners"`
 }
 
 type ServeMessageResponse struct {
@@ -42,6 +49,11 @@ func (serve *Serve) Run() {
 //go:embed "static"
 var static embed.FS
 
+var wsUpgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+}
+
 func (serve *Serve) newRouter() *mux.Router {
 	router := mux.NewRouter().StrictSlash(true)
 
@@ -58,19 +70,19 @@ func (serve *Serve) newRouter() *mux.Router {
 		}
 	}
 
+	//
 	// Web server endpoints
+	//
 	router.HandleFunc("/", serveFile("static/index.html", "text/html"))
 	router.HandleFunc("/web/style.css", serveFile("static/style.css", "text/css"))
 	router.HandleFunc("/web/script.js", serveFile("static/script.js", "application/javascript"))
 	router.HandleFunc("/web/alpinejs-3.14.0.min.js", serveFile("static/alpinejs-3.14.0.min.js", "application/javascript"))
 
-	// This endpoint is served at GET /api/config and it returns the
-	// currently loaded config.
-	router.HandleFunc("/api/config", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(serve.config)
-	}).Methods(http.MethodGet)
+	//
+	// Endpoints to manage the server configuration.
+	//
 
+	// Method to create new servers.
 	router.HandleFunc("/api/config/server", func(w http.ResponseWriter, r *http.Request) {
 		var server ServerConfig
 		var resp ServeMessageResponse
@@ -96,6 +108,7 @@ func (serve *Serve) newRouter() *mux.Router {
 		json.NewEncoder(w).Encode(resp)
 	}).Methods(http.MethodPost)
 
+	// Method to delete servers.
 	router.HandleFunc("/api/config/server/{name}", func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		var resp ServeMessageResponse
@@ -115,22 +128,11 @@ func (serve *Serve) newRouter() *mux.Router {
 		json.NewEncoder(w).Encode(resp)
 	}).Methods(http.MethodDelete)
 
-	router.HandleFunc("/api/runner", func(w http.ResponseWriter, r *http.Request) {
-		resp := make(map[string]ServeRunnerResponseItem)
+	//
+	// Endpoints to manage running state of servers
+	//
 
-		for key, value := range serve.runner.ActiveProcesses {
-			resp[key] = ServeRunnerResponseItem{
-				Name:   key,
-				Port:   value.Port,
-				Stdout: value.Stdout,
-				Stderr: value.Stderr,
-			}
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
-	}).Methods(http.MethodGet)
-
+	// Endpoint to start a server
 	router.HandleFunc("/api/runner/{name}", func(w http.ResponseWriter, r *http.Request) {
 		var resp ServeMessageResponse
 		vars := mux.Vars(r)
@@ -149,6 +151,7 @@ func (serve *Serve) newRouter() *mux.Router {
 		json.NewEncoder(w).Encode(resp)
 	}).Methods(http.MethodPost)
 
+	// Endpoint to stop a server
 	router.HandleFunc("/api/runner/{name}", func(w http.ResponseWriter, r *http.Request) {
 		var resp ServeMessageResponse
 		vars := mux.Vars(r)
@@ -166,6 +169,69 @@ func (serve *Serve) newRouter() *mux.Router {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(resp)
 	}).Methods(http.MethodDelete)
+
+	//
+	// Endpoint to fetch the full state
+	//
+	router.HandleFunc("/api/state", func(w http.ResponseWriter, r *http.Request) {
+		var state = ServeFullState{
+			Config:      serve.config,
+			RunnerState: make(map[string]ServeRunnerResponseItem),
+		}
+
+		for key, value := range serve.runner.ActiveProcesses {
+			state.RunnerState[key] = ServeRunnerResponseItem{
+				Name:   key,
+				Port:   value.Port,
+				Stdout: value.Stdout,
+				Stderr: value.Stderr,
+			}
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(state)
+	}).Methods(http.MethodGet)
+
+	//
+	// Websocket endpoint to stream the state of the runner
+	//
+	router.HandleFunc("/api/ws", func(w http.ResponseWriter, r *http.Request) {
+		conn, err := wsUpgrader.Upgrade(w, r, nil)
+		if err != nil {
+			log.Println("Upgrade:", err)
+			return
+		}
+		defer conn.Close()
+
+		// Return runner state over the websocket
+		for {
+			var state = ServeFullState{
+				Config:      serve.config,
+				RunnerState: make(map[string]ServeRunnerResponseItem),
+			}
+
+			for key, value := range serve.runner.ActiveProcesses {
+				state.RunnerState[key] = ServeRunnerResponseItem{
+					Name:   key,
+					Port:   value.Port,
+					Stdout: value.Stdout,
+					Stderr: value.Stderr,
+				}
+			}
+
+			stateJson, err := json.Marshal(state)
+
+			if err != nil {
+				fmt.Println("Error encoding JSON:", err)
+				return
+			}
+
+			conn.WriteMessage(1, stateJson)
+
+			// Sleep a second
+			time.Sleep(time.Second)
+		}
+	})
 
 	return router
 }

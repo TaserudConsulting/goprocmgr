@@ -12,13 +12,6 @@
                 <nav id="nav">
                     <h1 @click="selectedServer = null">goprocmgr</h1>
                     <ul class="server-list">
-                        <li class="server-item refresh-toggle">
-                            auto refresh
-                            <label class="switch" for="refresh-toggle">
-                                <input type="checkbox" id="refresh-toggle" :checked="!pauseRefresh" @click="pauseRefresh = !pauseRefresh">
-                                <div class="slider"></div>
-                            </label>
-                        </li>
                         <template x-for="server in serverList">
                             <li :class="selectedServer === server.name ? 'server-item selected' : 'server-item'" @click="selectedServer = server.name">
                                 <template x-if="server.running">
@@ -72,7 +65,6 @@
                         <li><strong>t</strong>: Toggle server state</li>
                         <li><strong>n</strong>: Select next server</li>
                         <li><strong>p</strong>: Select previous server</li>
-                        <li><strong>r</strong>: Toggle auto refresh</li>
                         <li><strong>h</strong>: Show this help popup</li>
                     </ul>
                     <button @click="showKeybinds = false">Close</button>
