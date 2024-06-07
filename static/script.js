@@ -20,7 +20,7 @@ document.addEventListener('alpine:init', () => {
             })
         },
         setupWebSocket() {
-            this.ws = new WebSocket('ws://' + window.location.hostname + ':6969/api/ws')
+            this.ws = new WebSocket('ws://' + window.location.host + '/api/ws')
 
             this.ws.onmessage = (event) => {
                 const data = JSON.parse(event.data)
