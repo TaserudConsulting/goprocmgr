@@ -126,6 +126,10 @@ body {
     padding: 0;
 }
 
+#app div#content ul#logs-wrapper li {
+    padding: 0.2rem 0.4rem;
+}
+
 #app div#content ul#logs-wrapper li span.timestamp {
     font-weight: bold;
 }
