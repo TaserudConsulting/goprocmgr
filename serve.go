@@ -58,9 +58,15 @@ func (serve *Serve) newRouter() *mux.Router {
 
 	serveFile := func(fileName string, contentType string) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
-			if _, err := os.Stat(fileName); err == nil {
-				http.ServeFile(w, r, fileName)
-				return
+			// Look for the environment variable GOPROCMGR_ALLOW_EXTERNAL_RESOURCES
+			// to allow serving files from the filesystem.
+			allowExternalResources := os.Getenv("GOPROCMGR_ALLOW_EXTERNAL_RESOURCES")
+
+			if allowExternalResources == "1" {
+				if _, err := os.Stat(fileName); err == nil {
+					http.ServeFile(w, r, fileName)
+					return
+				}
 			}
 
 			file, _ := static.ReadFile(fileName)
