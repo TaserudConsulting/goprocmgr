@@ -154,9 +154,6 @@ func (runner *Runner) randomizePortNumber() (uint, error) {
 		return 0, fmt.Errorf("Out of ports, won't be able to find a port in configured range")
 	}
 
-	// Set a changing seed
-	rand.Seed(time.Now().UnixNano())
-
 	// Randomize ports within the range
 	randomPorts := rand.Perm(portRangeSize)
 
