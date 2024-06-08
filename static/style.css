@@ -1,33 +1,33 @@
 /** Variables with colors */
 :root {
     --main-bg-color: #ffffff;
-    --main-border-color: #9f9f9f;
+    --main-border-color: #dfdfdf;
     --main-fg-color: #000000;
     --nav-bg-color: #f4f4f4;
-    --nav-selected-color: #dfdfdf;
+    --nav-selected-color: #eaeaea;
     --nav-slider-active-bg-color: #66bb6a;
     --nav-slider-bg-color: #cccccc;
     --nav-slider-fg-color: #ffffff;
-    --nav-stderr-counter-color: #b12d2d;
-    --nav-stdout-counter-color: #29b829;
-    --stderr-bg-color: #d9a8a8;
-    --stdout-bg-color: #a3dba3;
+    --nav-stderr-counter-color: #910000;
+    --nav-stdout-counter-color: #015301;
+    --stderr-bg-color: #ffe5e5;
+    --stdout-bg-color: #d5ffd5;
 }
 
 @media (prefers-color-scheme: dark) {
     :root {
         --main-bg-color: #333333;
-        --main-border-color: #646464;
+        --main-border-color: #2f2f2f;
         --main-fg-color: #ffffff;
         --nav-bg-color: #222222;
         --nav-selected-color: #3b3b3b;
         --nav-slider-active-bg-color: #28772d;
         --nav-slider-bg-color: #484848;
         --nav-slider-fg-color: #b0b0b0;
-        --nav-stderr-counter-color: #e94848;
-        --nav-stdout-counter-color: #18c518;
-        --stderr-bg-color: #4d1f1f;
-        --stdout-bg-color: #316331;
+        --nav-stderr-counter-color: #ffbfbf;
+        --nav-stdout-counter-color: #8dff8d;
+        --stderr-bg-color: #371c1c;
+        --stdout-bg-color: #183118;
     }
 }
 
