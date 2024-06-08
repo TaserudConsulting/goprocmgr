@@ -42,7 +42,7 @@
                         <ul id="logs-wrapper">
                             <template x-for="line in [...getServer(selectedServer)?.logs ?? []].reverse()">
                                 <li :class="{ 'stdout': line.output === 'stdout', 'stderr': line.output === 'stderr' }">
-                                    <span x-text="formatTimestamp(line.timestamp)" class="timestamp"></span>
+                                    <span x-text="formatTimestamp(line.timestamp)" class="timestamp"></span> |
                                     <span x-text="line.message" class="message"></span>
                                 </li>
                             </template>
