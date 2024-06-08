@@ -48,4 +48,5 @@ through the same port, just with different domains (like `service1.local`).
       `t` to toggle server, `n` for next server, `p` for previous server).
 - [X] Implement an overview of the keybind in the web interface (press `h` to display popup).
 - [X] Refresh data and interface over websockets.
+- Improve the kill check for stopped processes.
 - Implement a getting started overview in the web interface on the frontpage.
