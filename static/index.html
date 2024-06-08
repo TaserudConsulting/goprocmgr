@@ -36,8 +36,8 @@
                     </aside>
                 </nav>
                 <div id="content">
-                    <div x-show="!selectedServer" id="frontpage" x-text="serverList.length === 0 ? 'No servers configured yet :)' : 'Select a server to view its logs :)'"></div>
-                    <div x-show="selectedServer && !getServer(selectedServer)?.running" id="frontpage">Server "<span x-text="selectedServer"></span>" is currently not started :)</div>
+                    <div x-show="!selectedServer" id="frontpage" x-text="serverList.length === 0 ? 'No servers configured yet :&rpar;' : 'Select a server to view its logs :&rpar;'"></div>
+                    <div x-show="selectedServer && !getServer(selectedServer)?.running" id="frontpage" x-text="'Server &ldquo;' + selectedServer + '&rdquo; is currently not started :&rpar;'"></div>
                     <div x-show="selectedServer && getServer(selectedServer)?.running">
                         <ul id="logs-wrapper">
                             <template x-for="line in [...getServer(selectedServer)?.logs ?? []].reverse()">
