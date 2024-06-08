@@ -39,11 +39,11 @@
                     <div x-show="!selectedServer" id="frontpage" x-text="serverList.length === 0 ? 'No servers configured yet :)' : 'Select a server to view its logs :)'"></div>
                     <div x-show="selectedServer && !getServer(selectedServer)?.running" id="frontpage">Server "<span x-text="selectedServer"></span>" is currently not started :)</div>
                     <div x-show="selectedServer && getServer(selectedServer)?.running">
-                        <div id="logs-wrapper">
+                        <ul id="logs-wrapper">
                             <template x-for="line in [...getServer(selectedServer)?.logs ?? []].reverse()">
-                                <div :class="{ 'stdout': line.output === 'stdout', 'stderr': line.output === 'stderr' }" x-text="line.message"></div>
+                                <li :class="{ 'stdout': line.output === 'stdout', 'stderr': line.output === 'stderr' }" x-text="line.message"></li>
                             </template>
-                        </div>
+                        </ul>
                     </div>
                 </div>
             </div>

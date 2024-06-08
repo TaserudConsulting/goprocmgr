@@ -117,17 +117,20 @@ body {
     height: 100%;
 }
 
-#app div#content div#logs-wrapper {
-    height: 100%;
+#app div#content ul#logs-wrapper {
     font-size: 0.8rem;
+    height: 100%;
+    list-style: none;
+    margin: 0;
     overflow: auto;
+    padding: 0;
 }
 
-#app div#content div#logs-wrapper div.stdout {
+#app div#content ul#logs-wrapper li.stdout {
     background-color: var(--stdout-bg-color);
 }
 
-#app div#content div#logs-wrapper div.stderr {
+#app div#content ul#logs-wrapper li.stderr {
     background-color: var(--stderr-bg-color);
 }
 
