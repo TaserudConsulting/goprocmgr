@@ -283,7 +283,7 @@ func (cli *Cli) Logs(name string) {
 		go func() {
 			for key, val := range state.RunnerState[name].Logs {
 				if key > logsMaxIndex {
-					fmt.Println(val.Output+">", val.Message)
+					fmt.Println(val.Output, val.Timestamp.Format("15:04:05")+">", val.Message)
 					logsMaxIndex = key
 				}
 			}

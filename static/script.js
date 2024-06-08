@@ -56,6 +56,15 @@ document.addEventListener('alpine:init', () => {
         countLogsByOutput(name, output) {
             return this.getServer(name).logs.filter(log => log.output === output).length
         },
+        formatTimestamp(timestamp) {
+            // Format the timestamp to HH:MM:SS
+            return new Date(timestamp).toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false,
+            })
+        },
         handleKeyEvents() {
             if (this.keyEvent.key === 'Escape') {
                 this.selectedServer = null

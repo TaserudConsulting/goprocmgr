@@ -126,6 +126,10 @@ body {
     padding: 0;
 }
 
+#app div#content ul#logs-wrapper li span.timestamp {
+    font-weight: bold;
+}
+
 #app div#content ul#logs-wrapper li.stdout {
     background-color: var(--stdout-bg-color);
 }
