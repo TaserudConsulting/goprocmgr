@@ -16,12 +16,12 @@
 
 @media (prefers-color-scheme: dark) {
     :root {
-        --main-bg-color: #333333;
+        --main-bg-color: #1e1e1e;
         --main-border-color: #2f2f2f;
-        --main-fg-color: #ffffff;
-        --nav-bg-color: #222222;
-        --nav-selected-color: #3b3b3b;
-        --nav-slider-active-bg-color: #28772d;
+        --main-fg-color: #dfdfdf;
+        --nav-bg-color: #151515;
+        --nav-selected-color: #111111;
+        --nav-slider-active-bg-color: #144617;
         --nav-slider-bg-color: #484848;
         --nav-slider-fg-color: #b0b0b0;
         --nav-stderr-counter-color: #ffbfbf;
