@@ -18,13 +18,25 @@
       packages = flake-utils.lib.flattenTree {
         default = pkgs.buildGoModule (let
           versionTag = "0.0.0";
+          pname = "goprocmgr";
           version = "${versionTag}.${nixpkgs.lib.substring 0 8 self.lastModifiedDate}.${self.shortRev or "dirty"}";
         in {
-          pname = "goprocmgr";
-          inherit version;
+          inherit pname version;
+
+          nativeBuildInputs = [
+            pkgs.pandoc
+          ];
 
           prePatch = ''
-            substituteInPlace main.go --replace "%undefined-version%" ${versionTag}
+            substituteInPlace CLI.md main.go --replace "%undefined-version%" ${versionTag}
+          '';
+
+          postBuild = ''
+            pandoc -s -t man CLI.md -o goprocmgr.1
+          '';
+
+          postInstall = ''
+            install -Dm644 goprocmgr.1 $out/share/man/man1/goprocmgr.1
           '';
 
           src = ./.;
