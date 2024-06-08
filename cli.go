@@ -10,8 +10,8 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/jedib0t/go-pretty/v6/table"
 )
 
@@ -249,46 +249,39 @@ func (cli *Cli) Logs(name string) {
 	var state ServeFullState
 	logsMaxIndex := -1
 
-	// Build URL to fetch runners
-	runnerRequestUrl := fmt.Sprintf("http://%s:%d/api/state", cli.config.Settings.ListenAddress, cli.config.Settings.ListenPort)
+	// Build URL to establish websocket connection
+	wsUrl := fmt.Sprintf("ws://%s:%d/api/ws", cli.config.Settings.ListenAddress, cli.config.Settings.ListenPort)
 
+	// Create a new websocket connection
+	conn, _, err := websocket.DefaultDialer.Dial(wsUrl, nil)
+	if err != nil {
+		log.Printf("Failed to establish websocket connection: %s\n", err)
+		os.Exit(1)
+	}
+	defer conn.Close()
+
+	// Start loop to recieve and process incoming websocket messages
 	for {
-		// Do request to running instance of program to get running processes
-		runnerRes, err := http.Get(runnerRequestUrl)
-
+		_, message, err := conn.ReadMessage()
 		if err != nil {
-			log.Printf("Failed to connect to running instance of program: %s\n", err)
-			os.Exit(1)
-		}
-
-		// Validate status code
-		if runnerRes.StatusCode != http.StatusOK {
-			log.Printf("Unexpected status code when fetching runner processes: %d\n", runnerRes.StatusCode)
+			log.Printf("Failed to read websocket message: %s\n", err)
 			os.Exit(2)
 		}
 
-		// Read the body content
-		defer runnerRes.Body.Close()
-		runnerBody, _ := io.ReadAll(runnerRes.Body)
-
-		// Parse the json
-		json.Unmarshal(runnerBody, &state)
+		// Parse the json message
+		json.Unmarshal(message, &state)
 
 		if _, ok := state.RunnerState[name]; !ok {
 			log.Printf("Process '%s' doesn't seem to be running", name)
 			os.Exit(3)
 		}
 
-		// Tail logs
-		go func() {
-			for key, val := range state.RunnerState[name].Logs {
-				if key > logsMaxIndex {
-					fmt.Println(val.Output, val.Timestamp.Format("15:04:05")+">", val.Message)
-					logsMaxIndex = key
-				}
+		// Process the logs
+		for key, val := range state.RunnerState[name].Logs {
+			if key > logsMaxIndex {
+				fmt.Println(val.Output, val.Timestamp.Format("15:04:05")+">", val.Message)
+				logsMaxIndex = key
 			}
-		}()
-
-		time.Sleep(1 * time.Second)
+		}
 	}
 }
