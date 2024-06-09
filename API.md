@@ -35,7 +35,7 @@ POST /api/runner/:name
 DELETE /api/runner/:name
 ```
 
-## Fetch full state about all servers
+## Fetch overview of state of all servers
 
 ```http
 GET /api/state

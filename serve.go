@@ -3,6 +3,7 @@ package main // import "github.com/TaserudConsulting/goprocmgr"
 import (
 	"embed"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -21,6 +22,18 @@ type Serve struct {
 type ServeFullState struct {
 	Config      *Config                            `json:"configs"`
 	RunnerState map[string]ServeRunnerResponseItem `json:"runners"`
+}
+
+type ServerItem struct {
+	Name        string `json:"name"`
+	IsRunning   bool   `json:"is_running"`
+	Port        uint   `json:"port"`
+	StdoutCount uint   `json:"stdout_count"`
+	StderrCount uint   `json:"stderr_count"`
+}
+
+type ServerItemList struct {
+	Servers map[string]ServerItem `json:"servers"`
 }
 
 type ServeMessageResponse struct {
@@ -177,24 +190,11 @@ func (serve *Serve) newRouter() *mux.Router {
 	}).Methods(http.MethodDelete)
 
 	//
-	// Endpoint to fetch the full state
+	// Endpoint to fetch an overview of the state of all servers
 	//
 	router.HandleFunc("/api/state", func(w http.ResponseWriter, r *http.Request) {
-		var state = ServeFullState{
-			Config:      serve.config,
-			RunnerState: make(map[string]ServeRunnerResponseItem),
-		}
-
-		for key, value := range serve.runner.ActiveProcesses {
-			state.RunnerState[key] = ServeRunnerResponseItem{
-				Name: key,
-				Port: value.Port,
-				Logs: value.Logs,
-			}
-		}
-
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(state)
+		json.NewEncoder(w).Encode(serve.GetServerList())
 	}).Methods(http.MethodGet)
 
 	//
@@ -249,4 +249,54 @@ func (serve *Serve) newRouter() *mux.Router {
 	})
 
 	return router
+}
+
+func (serve *Serve) GetServer(name string) (ServerItem, error) {
+	var serverItem ServerItem
+
+	// Check if name is a valid entry in serve.config.Servers, if
+	// it isn't, return error.
+	if _, ok := serve.config.Servers[name]; ok == false {
+		return serverItem, errors.New("Undefined server requested '" + name + "'")
+	}
+
+	serverItem.Name = name
+	serverItem.IsRunning = false
+
+	if serve.runner.ActiveProcesses[name] != nil {
+		serverItem.IsRunning = true
+		serverItem.Port = serve.runner.ActiveProcesses[name].Port
+
+		// Count the logs for each server by output
+		for _, logEntry := range serve.runner.ActiveProcesses[name].Logs {
+			if logEntry.Output == "stdout" {
+				serverItem.StdoutCount++
+			} else if logEntry.Output == "stderr" {
+				serverItem.StderrCount++
+			}
+		}
+	}
+
+	return serverItem, nil
+}
+
+func (serve *Serve) GetServerList() ServerItemList {
+	servers := ServerItemList{
+		Servers: make(map[string]ServerItem),
+	}
+
+	// Go through all configured servers
+	for serverName := range serve.config.Servers {
+		server, err := serve.GetServer(serverName)
+
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+
+		// Add the server to the list
+		servers.Servers[serverName] = server
+	}
+
+	return servers
 }
