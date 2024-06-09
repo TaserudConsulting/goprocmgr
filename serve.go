@@ -241,7 +241,7 @@ func (serve *Serve) newRouter() *mux.Router {
 			}
 
 			// Send the updated state
-			conn.WriteMessage(1, stateJson)
+			conn.WriteMessage(websocket.TextMessage, stateJson)
 
 			// Update last state
 			lastState = stateJson
