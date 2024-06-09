@@ -41,6 +41,12 @@ DELETE /api/runner/:name
 GET /api/state
 ```
 
+## Fetch state and logs of of a specific server
+
+```http
+GET /api/state/:name
+```
+
 ## Websocket to get real-time state updates
 
 ```http

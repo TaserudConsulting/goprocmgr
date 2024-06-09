@@ -32,6 +32,11 @@ type ServerItem struct {
 	StderrCount uint   `json:"stderr_count"`
 }
 
+type ServerItemWithLogs struct {
+	ServerItem ServerItem `json:"server"`
+	Logs       []LogEntry `json:"logs"`
+}
+
 type ServerItemList struct {
 	Servers map[string]ServerItem `json:"servers"`
 }
@@ -192,9 +197,19 @@ func (serve *Serve) newRouter() *mux.Router {
 	//
 	// Endpoint to fetch an overview of the state of all servers
 	//
+
+	// Fetch state without logs for all servers
 	router.HandleFunc("/api/state", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(serve.GetServerList())
+	}).Methods(http.MethodGet)
+
+	// Fetch state and logs for a single server
+	router.HandleFunc("/api/state/{name}", func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(serve.GetServerLogs(vars["name"]))
 	}).Methods(http.MethodGet)
 
 	//
@@ -299,4 +314,16 @@ func (serve *Serve) GetServerList() ServerItemList {
 	}
 
 	return servers
+}
+
+func (serve *Serve) GetServerLogs(name string) ServerItemWithLogs {
+	var serverItemWithLogs ServerItemWithLogs
+
+	serverItemWithLogs.ServerItem, _ = serve.GetServer(name)
+
+	if serverItemWithLogs.ServerItem.IsRunning == true {
+		serverItemWithLogs.Logs = serve.runner.ActiveProcesses[name].Logs
+	}
+
+	return serverItemWithLogs
 }
