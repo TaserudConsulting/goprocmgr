@@ -20,13 +20,15 @@ type Cli struct {
 }
 
 func (cli *Cli) List(format string) {
-	var state ServeFullState
+	var state map[string]ServerConfig
+	var runningState ServerItemList
 
 	// Build URL based on config
-	requestUrl := fmt.Sprintf("http://%s:%d/api/state", cli.config.Settings.ListenAddress, cli.config.Settings.ListenPort)
+	requestUrl := fmt.Sprintf("http://%s:%d/api/config/server", cli.config.Settings.ListenAddress, cli.config.Settings.ListenPort)
 
 	// Do request to running instance of program
 	res, err := http.Get(requestUrl)
+	defer res.Body.Close()
 
 	if err != nil {
 		log.Printf("Failed to connect to running instance of program: %s\n", err)
@@ -40,11 +42,34 @@ func (cli *Cli) List(format string) {
 	}
 
 	// Read the body content
-	defer res.Body.Close()
 	body, _ := io.ReadAll(res.Body)
 
 	// Parse the json
 	json.Unmarshal(body, &state)
+
+	// Build URL based on config
+	requestUrl = fmt.Sprintf("http://%s:%d/api/state", cli.config.Settings.ListenAddress, cli.config.Settings.ListenPort)
+
+	// Get the state
+	res, err = http.Get(requestUrl)
+	defer res.Body.Close()
+
+	if err != nil {
+		log.Printf("Failed to connect to running instance of program: %s\n", err)
+		os.Exit(1)
+	}
+
+	// Validate status code
+	if res.StatusCode != http.StatusOK {
+		log.Printf("Unexpected status code when fetching active config: %d\n", res.StatusCode)
+		os.Exit(2)
+	}
+
+	// Read the body content
+	body, _ = io.ReadAll(res.Body)
+
+	// Parse the json
+	json.Unmarshal(body, &runningState)
 
 	switch format {
 	case "table":
@@ -52,11 +77,11 @@ func (cli *Cli) List(format string) {
 		output.SetOutputMirror(os.Stdout)
 		output.AppendHeader(table.Row{"Name", "Running", "Directory", "Command"})
 
-		for _, val := range state.Config.Servers {
+		for _, val := range state {
 			isRunning := false
 
-			if _, ok := state.RunnerState[val.Name]; ok {
-				isRunning = true
+			if _, ok := runningState.Servers[val.Name]; ok {
+				isRunning = runningState.Servers[val.Name].IsRunning
 			}
 
 			output.AppendRow([]interface{}{val.Name, isRunning, val.Directory, val.Command})
@@ -70,11 +95,11 @@ func (cli *Cli) List(format string) {
 
 		output.Write([]string{"Name", "Running", "Directory", "Command"})
 
-		for _, val := range state.Config.Servers {
+		for _, val := range state {
 			isRunning := false
 
-			if _, ok := state.RunnerState[val.Name]; ok {
-				isRunning = true
+			if _, ok := runningState.Servers[val.Name]; ok {
+				isRunning = runningState.Servers[val.Name].IsRunning
 			}
 
 			output.Write([]string{val.Name, fmt.Sprintf("%t", isRunning), val.Directory, val.Command})

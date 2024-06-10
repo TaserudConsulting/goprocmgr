@@ -152,6 +152,12 @@ func (serve *Serve) newRouter() *mux.Router {
 		json.NewEncoder(w).Encode(resp)
 	}).Methods(http.MethodDelete)
 
+	// Method to fetch all servers configurations
+	router.HandleFunc("/api/config/server", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(serve.config.Servers)
+	}).Methods(http.MethodGet)
+
 	//
 	// Endpoints to manage running state of servers
 	//

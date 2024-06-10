@@ -23,6 +23,12 @@ Content-Type: application/json
 DELETE /api/config/server/:name
 ```
 
+## Get all servers configuration
+
+```http
+GET /api/config/server
+```
+
 ## Start a server
 
 ```http
