@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 
 	"github.com/gorilla/websocket"
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -71,13 +72,21 @@ func (cli *Cli) List(format string) {
 	// Parse the json
 	json.Unmarshal(body, &runningState)
 
+	// Extract keys and sort them
+	var keys []string
+	for k := range state {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
 	switch format {
 	case "table":
 		output := table.NewWriter()
 		output.SetOutputMirror(os.Stdout)
 		output.AppendHeader(table.Row{"Name", "Running", "Directory", "Command"})
 
-		for _, val := range state {
+		for _, key := range keys {
+			val := state[key]
 			isRunning := false
 
 			if _, ok := runningState.Servers[val.Name]; ok {
@@ -95,7 +104,8 @@ func (cli *Cli) List(format string) {
 
 		output.Write([]string{"Name", "Running", "Directory", "Command"})
 
-		for _, val := range state {
+		for _, key := range keys {
+			val := state[key]
 			isRunning := false
 
 			if _, ok := runningState.Servers[val.Name]; ok {
@@ -271,8 +281,7 @@ func (cli *Cli) Stop(name string) {
 }
 
 func (cli *Cli) Logs(name string) {
-	var state ServeFullState
-	logsMaxIndex := -1
+	var logsMaxIndex int = -1
 
 	// Build URL to establish websocket connection
 	wsUrl := fmt.Sprintf("ws://%s:%d/api/ws", cli.config.Settings.ListenAddress, cli.config.Settings.ListenPort)
@@ -285,24 +294,43 @@ func (cli *Cli) Logs(name string) {
 	}
 	defer conn.Close()
 
-	// Start loop to recieve and process incoming websocket messages
+	// Send subscription message for the specific server
+	subscription := map[string]string{"name": name}
+	subMsg, err := json.Marshal(subscription)
+	if err != nil {
+		log.Printf("Failed to marshal subscription message: %s\n", err)
+		os.Exit(2)
+	}
+
+	err = conn.WriteMessage(websocket.TextMessage, subMsg)
+	if err != nil {
+		log.Printf("Failed to send subscription message: %s\n", err)
+		os.Exit(3)
+	}
+
+	// Start loop to receive and process incoming websocket messages
 	for {
 		_, message, err := conn.ReadMessage()
 		if err != nil {
 			log.Printf("Failed to read websocket message: %s\n", err)
-			os.Exit(2)
+			os.Exit(4)
 		}
 
-		// Parse the json message
-		json.Unmarshal(message, &state)
+		// Parse the JSON message
+		var serverLogs ServerItemWithLogs
+		err = json.Unmarshal(message, &serverLogs)
+		if err != nil {
+			log.Printf("Failed to unmarshal websocket message: %s\n", err)
+			continue
+		}
 
-		if _, ok := state.RunnerState[name]; !ok {
-			log.Printf("Process '%s' doesn't seem to be running", name)
-			os.Exit(3)
+		// Check if the message is for the subscribed server
+		if serverLogs.ServerItem.Name != name {
+			continue
 		}
 
 		// Process the logs
-		for key, val := range state.RunnerState[name].Logs {
+		for key, val := range serverLogs.Logs {
 			if key > logsMaxIndex {
 				if val.Output == "stdout" {
 					fmt.Println(val.Output, val.Timestamp.Format("15:04:05"), "|", val.Message)

@@ -8,20 +8,18 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"time"
+	"sync"
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 )
 
 type Serve struct {
-	config *Config
-	runner *Runner
-}
-
-type ServeFullState struct {
-	Config      *Config                            `json:"configs"`
-	RunnerState map[string]ServeRunnerResponseItem `json:"runners"`
+	config              *Config
+	runner              *Runner
+	stateChange         chan bool                       // Channel to signal a state change
+	clientSubscriptions map[*websocket.Conn]string      // Map of client connections and their subscriptions
+	clientLocks         map[*websocket.Conn]*sync.Mutex // Map of locks for each client connection to not send multiple messages at once
 }
 
 type ServerItem struct {
@@ -45,10 +43,14 @@ type ServeMessageResponse struct {
 	Message string `json:"message"`
 }
 
-type ServeRunnerResponseItem struct {
-	Name string     `json:"name"`
-	Port uint       `json:"port"`
-	Logs []LogEntry `json:"logs"`
+func NewServe(config *Config, runner *Runner) *Serve {
+	return &Serve{
+		config:              config,
+		runner:              runner,
+		stateChange:         make(chan bool),
+		clientSubscriptions: make(map[*websocket.Conn]string),
+		clientLocks:         make(map[*websocket.Conn]*sync.Mutex),
+	}
 }
 
 func (serve *Serve) Run() {
@@ -126,7 +128,7 @@ func (serve *Serve) newRouter() *mux.Router {
 		}
 
 		// Stop servers on update in case it's running.
-		serve.runner.Stop(server.Name)
+		serve.runner.Stop(server.Name, serve)
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(resp)
@@ -137,7 +139,7 @@ func (serve *Serve) newRouter() *mux.Router {
 		vars := mux.Vars(r)
 		var resp ServeMessageResponse
 
-		err := serve.runner.Stop(vars["name"])
+		err := serve.runner.Stop(vars["name"], serve)
 
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
@@ -167,7 +169,7 @@ func (serve *Serve) newRouter() *mux.Router {
 		var resp ServeMessageResponse
 		vars := mux.Vars(r)
 
-		err := serve.runner.Start(vars["name"])
+		err := serve.runner.Start(vars["name"], serve)
 
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
@@ -186,7 +188,7 @@ func (serve *Serve) newRouter() *mux.Router {
 		var resp ServeMessageResponse
 		vars := mux.Vars(r)
 
-		err := serve.runner.Stop(vars["name"])
+		err := serve.runner.Stop(vars["name"], serve)
 
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
@@ -229,45 +231,72 @@ func (serve *Serve) newRouter() *mux.Router {
 		}
 		defer conn.Close()
 
-		var lastState []byte
+		serve.clientSubscriptions[conn] = ""    // Initialize with no subscription
+		serve.clientLocks[conn] = &sync.Mutex{} // Initialize mutex for this connection
 
-		// Return runner state over the websocket
-		for {
-			var state = ServeFullState{
-				Config:      serve.config,
-				RunnerState: make(map[string]ServeRunnerResponseItem),
-			}
+		go func() {
+			defer func() {
+				conn.Close()
+				delete(serve.clientSubscriptions, conn)
+				delete(serve.clientLocks, conn) // Remove mutex for this connection
+			}()
 
-			for key, value := range serve.runner.ActiveProcesses {
-				state.RunnerState[key] = ServeRunnerResponseItem{
-					Name: key,
-					Port: value.Port,
-					Logs: value.Logs,
+			// Send initial list state on connect to the client
+			listState := serve.GetServerList()
+			serve.sendMessage(conn, listState)
+
+			for {
+				_, message, err := conn.ReadMessage()
+				if err != nil {
+					log.Println("ReadMessage:", err)
+					break
+				}
+
+				// Parse the subscription message
+				var subscription map[string]string
+				if err := json.Unmarshal(message, &subscription); err != nil {
+					log.Println("Unmarshal:", err)
+					continue
+				}
+
+				if name, ok := subscription["name"]; ok {
+					serve.clientSubscriptions[conn] = name
+
+					// Send initial state for the subscribed server
+					serverState := serve.GetServerLogs(name)
+
+					// Only send logs if there are any
+					if len(serverState.Logs) > 0 {
+						serve.sendMessage(conn, serverState)
+					}
 				}
 			}
+		}()
 
-			stateJson, err := json.Marshal(state)
+		for {
+			select {
+			case <-serve.stateChange:
+				for client, name := range serve.clientSubscriptions {
+					// Send the list state regardless of subscription
+					listState := serve.GetServerList()
+					serve.sendMessage(client, listState)
 
-			if err != nil {
-				fmt.Println("Error encoding JSON:", err)
-				return
+					// Skip clients with no subscription
+					if name == "" {
+						continue
+					}
+
+					// Send state for the subscribed server
+					serverState := serve.GetServerLogs(name)
+
+					// Only send logs if there are any
+					if len(serverState.Logs) > 0 {
+						serve.sendMessage(client, serverState)
+					}
+				}
 			}
-
-			if string(stateJson) == string(lastState) {
-				// Sleep a bit to then try again
-				time.Sleep(time.Millisecond * 100)
-
-				// Continue to next iteration
-				continue
-			}
-
-			// Send the updated state
-			conn.WriteMessage(websocket.TextMessage, stateJson)
-
-			// Update last state
-			lastState = stateJson
 		}
-	})
+	}).Methods(http.MethodGet)
 
 	return router
 }
@@ -332,4 +361,23 @@ func (serve *Serve) GetServerLogs(name string) ServerItemWithLogs {
 	}
 
 	return serverItemWithLogs
+}
+
+// Send a message to a client over a websocket connection
+func (serve *Serve) sendMessage(client *websocket.Conn, data interface{}) {
+	message, err := json.Marshal(data)
+	if err != nil {
+		log.Println("Marshal:", err)
+		return
+	}
+
+	serve.clientLocks[client].Lock()
+	defer serve.clientLocks[client].Unlock()
+
+	if err := client.WriteMessage(websocket.TextMessage, message); err != nil {
+		log.Println("WriteMessage:", err)
+		client.Close()
+		delete(serve.clientSubscriptions, client)
+		delete(serve.clientLocks, client)
+	}
 }

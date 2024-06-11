@@ -15,17 +15,17 @@
                     <ul class="server-list">
                         <template x-for="server in serverList">
                             <li :class="selectedServer === server.name ? 'server-item selected' : 'server-item'" @click="selectedServer = server.name">
-                                <template x-if="server.running">
+                                <template x-if="server.is_running">
                                     <a :href="`http://${window.location.hostname}:${server.port}`" target="_blank" x-text="server.name"></a>
                                 </template>
-                                <template x-if="!server.running"><span x-text="server.name"></span></template>
-                                <template x-if="server.running">
+                                <template x-if="!server.is_running"><span x-text="server.name"></span></template>
+                                <template x-if="server.is_running">
                                     <span class="log-item-count">
-                                        (<span class="stdout" x-text="countLogsByOutput(server.name, 'stdout')"></span>/<span class="stderr" x-text="countLogsByOutput(server.name, 'stderr')"></span>)
+                                        (<span class="stdout" x-text="server.stdout_count"></span>/<span class="stderr" x-text="server.stderr_count"></span>)
                                     </span>
                                 </template>
                                 <label class="switch" :for="'toggle-' + server.name">
-                                    <input type="checkbox" :id="'toggle-' + server.name" :checked="server.running" @click.stop="toggleServer(server.name)">
+                                    <input type="checkbox" :id="'toggle-' + server.name" :checked="server.is_running" @click.stop="toggleServer(server.name)">
                                     <div class="slider"></div>
                                 </label>
                             </li>
@@ -37,10 +37,10 @@
                 </nav>
                 <div id="content">
                     <div x-show="!selectedServer" id="frontpage" x-text="serverList.length === 0 ? 'No servers configured yet :&rpar;' : 'Select a server to view its logs :&rpar;'"></div>
-                    <div x-show="selectedServer && !getServer(selectedServer)?.running" id="frontpage" x-text="'Server &ldquo;' + selectedServer + '&rdquo; is currently not started :&rpar;'"></div>
-                    <div x-show="selectedServer && getServer(selectedServer)?.running">
+                    <div x-show="selectedServer && !getServer(selectedServer)?.is_running" id="frontpage" x-text="'Server &ldquo;' + selectedServer + '&rdquo; is currently not started :&rpar;'"></div>
+                    <div x-show="selectedServer && getServer(selectedServer)?.is_running">
                         <ul id="logs-wrapper">
-                            <template x-for="line in [...getServer(selectedServer)?.logs ?? []].reverse()">
+                            <template x-for="line in serverLogs.reverse()">
                                 <li :class="{ 'stdout': line.output === 'stdout', 'stderr': line.output === 'stderr' }">
                                     <span x-text="formatTimestamp(line.timestamp)" class="timestamp"></span> |
                                     <span x-text="line.message" class="message"></span>

@@ -29,7 +29,7 @@ type ActiveRunner struct {
 	Logs []LogEntry
 }
 
-func (runner *Runner) Start(name string) error {
+func (runner *Runner) Start(name string, serve *Serve) error {
 	// Init active processes map
 	if runner.ActiveProcesses == nil {
 		runner.ActiveProcesses = make(map[string]*ActiveRunner)
@@ -125,6 +125,8 @@ func (runner *Runner) Start(name string) error {
 				Message:   stdoutScanner.Text(),
 				Output:    "stdout",
 			})
+
+			serve.stateChange <- true
 		}
 	}()
 
@@ -138,11 +140,16 @@ func (runner *Runner) Start(name string) error {
 				Message:   stderrScanner.Text(),
 				Output:    "stderr",
 			})
+
+			serve.stateChange <- true
 		}
 	}()
 
 	// Store the Cmd process as an active process
 	runner.ActiveProcesses[name] = &activeRunner
+
+	// Notify state change on start
+	serve.stateChange <- true
 
 	return nil
 }
@@ -177,7 +184,7 @@ func (runner *Runner) randomizePortNumber() (uint, error) {
 	return 0, fmt.Errorf("Tried to randomize an unused port, failed")
 }
 
-func (runner *Runner) Stop(name string) error {
+func (runner *Runner) Stop(name string, serve *Serve) error {
 	// Init active processes map
 	if runner.ActiveProcesses == nil {
 		runner.ActiveProcesses = make(map[string]*ActiveRunner)
@@ -212,6 +219,9 @@ func (runner *Runner) Stop(name string) error {
 
 	// Delete old status for process
 	delete(runner.ActiveProcesses, name)
+
+	// Notify state change on stop
+	serve.stateChange <- true
 
 	return nil
 }

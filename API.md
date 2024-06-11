@@ -58,3 +58,9 @@ GET /api/state/:name
 ```http
 GET /api/ws
 ```
+
+This will return the state of all servers and will update in real-time.
+
+If the client sends a message in the format of `{"name": "server-name"}`,
+it will also return the logs of that server along side the overview state
+of all the servers.

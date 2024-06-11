@@ -4,6 +4,7 @@ document.addEventListener('alpine:init', () => {
     Alpine.data('app', () => ({
         // Application state
         serverList: [],
+        serverLogs: [],
 
         // The selected server, this is used to show the logs for a specific server.
         selectedServer: localStorage.getItem('selectedServer') === 'null' ? null : localStorage.getItem('selectedServer'),
@@ -32,6 +33,8 @@ document.addEventListener('alpine:init', () => {
             // so we can remember the selected server when the page is reloaded.
             this.$watch('selectedServer', (value) => {
                 localStorage.setItem('selectedServer', value)
+                this.serverLogs = []
+                this.subscribeToServer(value)
             })
         },
 
@@ -40,17 +43,25 @@ document.addEventListener('alpine:init', () => {
             // Create a new WebSocket connection to the server.
             this.ws = new WebSocket('ws://' + window.location.host + '/api/ws')
 
+            // On open, subscribe to the currently selected server.
+            this.ws.onopen = () => {
+                this.subscribeToServer(this.selectedServer)
+            }
+
             // On message, we parse the JSON data and update the server list.
             this.ws.onmessage = (event) => {
                 const data = JSON.parse(event.data)
 
-                // Update the server list with the data from the server.
-                this.serverList = Object.keys(data.configs.servers).map(serverName => ({
-                    name: serverName,
-                    port: data.runners[serverName]?.port ?? 0,
-                    running: (serverName in data.runners),
-                    logs: data.runners[serverName]?.logs || [],
-                }))
+                // Check if it's a full state or a specific server update
+                if (data.servers) {
+                    this.serverList = Object.values(data.servers)
+
+                    // Count servers that has the is_running flag set to true
+                    document.title = 'goprocmgr (' + this.serverList.filter(item => item.is_running).length + ')'
+                } else if (data.server && data.logs) {
+                    // Specific server update
+                    this.serverLogs = data.logs
+                }
             }
 
             // Reconnect on close, we also wipe the web socket instance
@@ -59,6 +70,7 @@ document.addEventListener('alpine:init', () => {
             this.ws.onclose = () => {
                 this.ws = null
                 this.serverList = []
+                this.serverLogs = []
 
                 setTimeout(() => {
                     this.setupWebSocket()
@@ -66,21 +78,23 @@ document.addEventListener('alpine:init', () => {
             }
         },
 
+        // Subscribe to updates for a specific server
+        subscribeToServer(serverName) {
+            if (this.ws && this.ws.readyState === WebSocket.OPEN && serverName) {
+                this.ws.send(JSON.stringify({ name: serverName }))
+            }
+        },
+
         // Toggle the server state, if it's running, stop it, if it's stopped, start it.
         async toggleServer(name) {
             await fetch(`/api/runner/${name}`, {
-                method: this.getServer(name).running ? 'DELETE' : 'POST',
+                method: this.getServer(name).is_running ? 'DELETE' : 'POST',
             })
         },
 
         // Get the server by name
         getServer(name) {
             return this.serverList.find(item => item.name === name) || {}
-        },
-
-        // Get the count of logs by output
-        countLogsByOutput(name, output) {
-            return this.getServer(name).logs.filter(log => log.output === output).length
         },
 
         // Format a timestamp to HH:MM:SS
