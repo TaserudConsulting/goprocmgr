@@ -52,20 +52,20 @@ Run the web server:
 List stored servers in CSV format:
 : goprocmgr -list -list-format csv
 
-Add a new server:
-: goprocmgr -add "myserver start-command"
+Add a new server (*name* is picked by the current working directory name):
+: goprocmgr -add "start-command for server"
 
 Remove a server:
-: goprocmgr -remove "myserver"
+: goprocmgr -remove *name*
 
 Start a server:
-: goprocmgr -start "myserver"
+: goprocmgr -start *name*
 
 Stop a server:
-: goprocmgr -stop "myserver"
+: goprocmgr -stop *name*
 
 Tail the logs of a server:
-: goprocmgr -logs "myserver"
+: goprocmgr -logs *name*
 
 Print version:
 : goprocmgr -version
