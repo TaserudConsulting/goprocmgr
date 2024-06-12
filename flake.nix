@@ -28,7 +28,7 @@
           ];
 
           prePatch = ''
-            substituteInPlace CLI.md main.go --replace "%undefined-version%" ${versionTag}
+            substituteInPlace CLI.md main.go --replace-fail "%undefined-version%" ${versionTag}
           '';
 
           postBuild = ''
