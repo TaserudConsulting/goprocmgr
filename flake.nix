@@ -28,7 +28,7 @@
           ];
 
           prePatch = ''
-            substituteInPlace CLI.md main.go --replace-fail "%undefined-version%" ${versionTag}
+            substituteInPlace CLI.md main.go --replace-fail "%undefined-version%" ${version}
           '';
 
           postBuild = ''
@@ -53,6 +53,41 @@
             pkgs.go # language
             pkgs.gopls # language server
           ];
+        };
+      };
+
+      checks = flake-utils.lib.flattenTree {
+        default = pkgs.nixosTest {
+          name = "goprocmgr-integration-test";
+          nodes.machine = {
+            config,
+            pkgs,
+            ...
+          }: {
+            # Install package
+            environment.systemPackages = [
+              self.packages.${system}.default
+            ];
+
+            # Create service
+            systemd.services.${self.packages.${system}.default.pname} = {
+              description = self.packages.${system}.default.pname;
+              after = ["network.target"];
+              wantedBy = ["multi-user.target"];
+              serviceConfig.ExecStart = "${self.packages.${system}.default}/bin/${self.packages.${system}.default.pname}";
+              serviceConfig.Restart = "always";
+            };
+          };
+
+          testScript = ''
+            machine.start()
+            machine.wait_for_unit("${self.packages.${system}.default.pname}.service")
+
+            # Check version output from command line util
+            version = machine.succeed("${self.packages.${system}.default.pname} --version")
+            assert '${self.packages.${system}.default.pname} version ${self.packages.${system}.default.version}' in version, \
+              "Version output mismatch, got: '" + version + "', expected '${self.packages.${system}.default.version}'"
+          '';
         };
       };
 
