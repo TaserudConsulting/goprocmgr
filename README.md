@@ -49,4 +49,6 @@ through the same port, just with different domains (like `service1.local`).
 - [X] Implement an overview of the keybind in the web interface (press `h` to display popup).
 - [X] Refresh data and interface over websockets.
 - Improve the kill check for stopped processes.
+- Implement a dynamic favicon to include a number of running servers.
+- Implement parsing of terminal colors to display these in the web (and also terminate them at end of lines in CLI tail)
 - Implement a getting started overview in the web interface on the frontpage.
