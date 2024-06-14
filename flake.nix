@@ -84,9 +84,20 @@
             machine.wait_for_unit("${self.packages.${system}.default.pname}.service")
 
             # Check version output from command line util
-            version = machine.succeed("${self.packages.${system}.default.pname} --version")
+            version = machine.succeed("${self.packages.${system}.default.pname} -version")
             assert '${self.packages.${system}.default.pname} version ${self.packages.${system}.default.version}' in version, \
               "Version output mismatch, got: '" + version + "', expected '${self.packages.${system}.default.version}'"
+
+            # Test connecting to the running instance
+            machine.succeed("${self.packages.${system}.default.pname} -list")
+
+            # Test adding a new server
+            machine.succeed("${self.packages.${system}.default.pname} -add 'echo hello; sleep 1; echo world'")
+
+            # Fetch the list of servers and check that the new server is in the list
+            list = machine.succeed("${self.packages.${system}.default.pname} -list")
+            assert 'echo hello; sleep 1; echo world' in list, "Expected 'echo hello; sleep 1; echo world' in list, got: '" + list + "'"
+            assert 'tmp' in list, "Expected 'tmp' in list, got: '" + list + "'"
           '';
         };
       };
