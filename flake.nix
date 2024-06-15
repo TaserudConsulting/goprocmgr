@@ -25,6 +25,7 @@
 
           nativeBuildInputs = [
             pkgs.pandoc
+            pkgs.installShellFiles
           ];
 
           prePatch = ''
@@ -37,6 +38,7 @@
 
           postInstall = ''
             install -Dm644 goprocmgr.1 $out/share/man/man1/goprocmgr.1
+            installShellCompletion --cmd goprocmgr contrib/completions/goprocmgr.{fish,bash}
           '';
 
           src = ./.;
