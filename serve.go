@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
@@ -273,9 +274,21 @@ func (serve *Serve) newRouter() *mux.Router {
 			}
 		}()
 
+		// Store last send time to avoid sending too many messages per second
+		var lastSend int64
+
 		for {
 			select {
 			case <-serve.stateChange:
+				// Limit the amount of messages sent per second to send at most every 100ms
+				// to avoid flooding the client with messages.
+				if ((time.Now().UnixNano() / int64(time.Millisecond)) - 100) < lastSend {
+					continue
+				}
+
+				// Store the last send time
+				lastSend = time.Now().UnixNano() / int64(time.Millisecond)
+
 				for client, name := range serve.clientSubscriptions {
 					// Send the list state regardless of subscription
 					listState := serve.GetServerList()
