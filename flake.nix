@@ -17,7 +17,7 @@
     in {
       packages = flake-utils.lib.flattenTree {
         default = pkgs.buildGoModule (let
-          versionTag = "1.2.0";
+          versionTag = "1.3.0";
           pname = "goprocmgr";
           version = "${versionTag}.${nixpkgs.lib.substring 0 8 self.lastModifiedDate}.${self.shortRev or "dirty"}";
         in {
