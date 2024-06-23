@@ -29,12 +29,13 @@ func (cli *Cli) List(format string) {
 
 	// Do request to running instance of program
 	res, err := http.Get(requestUrl)
-	defer res.Body.Close()
 
 	if err != nil {
 		log.Printf("Failed to connect to running instance of program: %s\n", err)
 		os.Exit(1)
 	}
+
+	defer res.Body.Close()
 
 	// Validate status code
 	if res.StatusCode != http.StatusOK {
@@ -53,12 +54,13 @@ func (cli *Cli) List(format string) {
 
 	// Get the state
 	res, err = http.Get(requestUrl)
-	defer res.Body.Close()
 
 	if err != nil {
 		log.Printf("Failed to connect to running instance of program: %s\n", err)
 		os.Exit(1)
 	}
+
+	defer res.Body.Close()
 
 	// Validate status code
 	if res.StatusCode != http.StatusOK {
@@ -154,7 +156,8 @@ func (cli *Cli) Add(command string) {
 
 	// An error is returned if something goes wrong
 	if err != nil {
-		panic(err)
+		log.Printf("Failed to connect to running instance of program: %s\n", err)
+		os.Exit(1)
 	}
 
 	// Need to close the response stream, once response is read.
@@ -187,14 +190,16 @@ func (cli *Cli) Remove(name string) {
 	req, err := http.NewRequest(http.MethodDelete, requestUrl, nil)
 
 	if err != nil {
-		panic(err)
+		log.Printf("Failed to create request: %s\n", err)
+		os.Exit(3)
 	}
 
 	// Perform request
 	res, err := client.Do(req)
 
 	if err != nil {
-		panic(err)
+		log.Printf("Failed to connect to running instance of program: %s\n", err)
+		os.Exit(1)
 	}
 
 	if res.StatusCode == http.StatusOK {
@@ -224,7 +229,8 @@ func (cli *Cli) Start(name string) {
 
 	// An error is returned if something goes wrong
 	if err != nil {
-		panic(err)
+		log.Printf("Failed to connect to running instance of program: %s\n", err)
+		os.Exit(1)
 	}
 
 	// Check response code, if New user is created then read response.
@@ -253,15 +259,19 @@ func (cli *Cli) Stop(name string) {
 	req, err := http.NewRequest(http.MethodDelete, requestUrl, nil)
 
 	if err != nil {
-		panic(err)
+		log.Printf("Failed to create request: %s\n", err)
+		os.Exit(3)
 	}
 
 	// Perform request
 	res, err := client.Do(req)
 
 	if err != nil {
-		panic(err)
+		log.Printf("Failed to connect to running instance of program: %s\n", err)
+		os.Exit(1)
 	}
+
+	defer res.Body.Close()
 
 	if res.StatusCode == http.StatusOK {
 		log.Println("OK")
