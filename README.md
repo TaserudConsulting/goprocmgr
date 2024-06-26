@@ -25,7 +25,7 @@ simpler in design, feature set and implementation.
 ## Lack of Proxy
 
 Unlike `hotel` and `chalet` this program does not provide a proxy to the
-running servers. This is a design choice bauces then we would need to listen
+running servers. This is a design choice because then we would need to listen
 to port 80 and 443 which would require root access. This would also require
 to support TLS and certificates. So there's just a whole bunch extra work.
 
