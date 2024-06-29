@@ -13,7 +13,7 @@
                 <nav id="nav">
                     <h1 @click="selectedServer = null">goprocmgr</h1>
                     <ul class="server-list">
-                        <template x-for="server in serverList">
+                        <template x-for="server in serverList" :key="server.name">
                             <li :class="selectedServer === server.name ? 'server-item selected' : 'server-item'" @click="selectedServer = server.name">
                                 <template x-if="server.is_running">
                                     <a :href="`http://${window.location.hostname}:${server.port}`" target="_blank" x-text="server.name"></a>
@@ -40,7 +40,7 @@
                     <div x-show="selectedServer && !getServer(selectedServer)?.is_running" id="frontpage" x-text="'Server &ldquo;' + selectedServer + '&rdquo; is currently not started :&rpar;'"></div>
                     <div x-show="selectedServer && getServer(selectedServer)?.is_running">
                         <ul id="logs-wrapper">
-                            <template x-for="line in serverLogs.reverse()">
+                            <template x-for="line in serverLogs.slice().reverse()" :key="line.timestamp">
                                 <li :class="{ 'stdout': line.output === 'stdout', 'stderr': line.output === 'stderr' }">
                                     <span x-text="formatTimestamp(line.timestamp)" class="timestamp"></span> |
                                     <span x-text="line.message" class="message"></span>

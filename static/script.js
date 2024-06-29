@@ -7,10 +7,11 @@ document.addEventListener('alpine:init', () => {
         serverLogs: [],
 
         // The selected server, this is used to show the logs for a specific server.
-        selectedServer: localStorage.getItem('selectedServer') === 'null' ? null : localStorage.getItem('selectedServer'),
+        selectedServer: localStorage.getItem('selectedServer') === 'null' ? null : localStorage.getItem('selectedServer') || null,
 
         // The key event, this is used to listen for key events and trigger actions.
         keyEvent: new KeyboardEvent("keydown"),
+        keyEventHandled: false,
 
         // Show the keybinds, this is used to show the keybinds on the page.
         showKeybinds: false,
@@ -41,7 +42,7 @@ document.addEventListener('alpine:init', () => {
         // Setup the WebSocket connection to get data from the server.
         setupWebSocket() {
             // Create a new WebSocket connection to the server.
-            this.ws = new WebSocket('ws://' + window.location.host + '/api/ws')
+            this.ws = new WebSocket(`ws://${window.location.host}/api/ws`)
 
             // On open, subscribe to the currently selected server.
             this.ws.onopen = () => {
@@ -109,12 +110,18 @@ document.addEventListener('alpine:init', () => {
 
         // Handle key events for keyboard shortcuts
         handleKeyEvents() {
+            if (this.keyEventHandled) return
+            this.keyEventHandled = true
+
+            setTimeout(() => {
+                this.keyEventHandled = false
+            }, 100)
+
             if (this.keyEvent.key === 'Escape') {
                 this.selectedServer = null
             }
 
             if (this.keyEvent.key === 't' && this.selectedServer) {
-                this.keyEvent = new KeyboardEvent("keydown")
                 this.toggleServer(this.selectedServer)
             }
 
