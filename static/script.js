@@ -39,6 +39,7 @@ document.addEventListener('alpine:init', () => {
                 localStorage.setItem('selectedServer', value)
                 this.serverLogs = []
                 this.subscribeToServer(value)
+                this.scrollServerItemIntoViewIfNeeded(value)
             })
 
             // Watch for changes in the serverLogs array
@@ -71,6 +72,11 @@ document.addEventListener('alpine:init', () => {
 
                     // Count servers that has the is_running flag set to true
                     document.title = 'goprocmgr (' + this.serverList.filter(item => item.is_running).length + ')'
+
+                    // Scroll into view.
+                    if (this.selectedServer) {
+                        this.scrollServerItemIntoViewIfNeeded(this.selectedServer)
+                    }
                 } else if (data.server && data.logs) {
                     // Specific server update
                     this.serverLogs = data.logs
@@ -99,10 +105,23 @@ document.addEventListener('alpine:init', () => {
             this.autoScroll = logsWrapper.scrollTop + logsWrapper.clientHeight >= logsWrapper.scrollHeight - 10
         },
 
+        // Scroll to the bottom of the logs
         scrollToBottom() {
             if (this.$refs.logsWrapper) {
                 this.$refs.logsWrapper.scrollTop = this.$refs.logsWrapper.scrollHeight
             }
+        },
+
+        // Scroll the server item into view
+        scrollServerItemIntoViewIfNeeded(serverName) {
+            this.$nextTick(() => {
+                // Use querySelector to find the element with the matching data-list-item-server-name attribute
+                const serverItem = document.querySelector(`[data-list-item-server-name="${serverName}"]`);
+
+                if (serverItem) {
+                    serverItem.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' })
+                }
+            })
         },
 
         // Subscribe to updates for a specific server

@@ -14,7 +14,7 @@
                     <h1 @click="selectedServer = null">goprocmgr</h1>
                     <ul class="server-list">
                         <template x-for="server in serverList" :key="server.name">
-                            <li :class="selectedServer === server.name ? 'server-item selected' : 'server-item'" @click="selectedServer = server.name">
+                            <li :class="selectedServer === server.name ? 'server-item selected' : 'server-item'" @click="selectedServer = server.name" :data-list-item-server-name="server.name">
                                 <template x-if="server.is_running">
                                     <a :href="`http://${window.location.hostname}:${server.port}`" target="_blank" x-text="server.name"></a>
                                 </template>
