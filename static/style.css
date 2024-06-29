@@ -156,6 +156,7 @@ body {
 
 #app nav#nav ul li.server-item span.log-item-count {
     font-size: 0.75rem;
+    line-height: 1rem;
 }
 
 #app nav#nav ul li.server-item span.log-item-count span.stderr {
