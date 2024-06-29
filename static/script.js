@@ -19,6 +19,9 @@ document.addEventListener('alpine:init', () => {
         // The WebSocket connection, this is used to get data from the server.
         ws: null,
 
+        // Allow auto scrolling
+        autoScroll: true,
+
         // Initialize the application
         init() {
             // Setup the WebSocket connection to get data from the server.
@@ -36,6 +39,15 @@ document.addEventListener('alpine:init', () => {
                 localStorage.setItem('selectedServer', value)
                 this.serverLogs = []
                 this.subscribeToServer(value)
+            })
+
+            // Watch for changes in the serverLogs array
+            this.$watch('serverLogs', (_) => {
+                this.$nextTick(() => {
+                    if (this.autoScroll) {
+                        this.scrollToBottom()
+                    }
+                })
             })
         },
 
@@ -79,6 +91,20 @@ document.addEventListener('alpine:init', () => {
             }
         },
 
+        // Method to check scroll position to enable or disable autoScroll
+        checkScrollPosition() {
+            const logsWrapper = this.$refs.logsWrapper
+
+            // If the user is near the bottom, enable auto-scroll
+            this.autoScroll = logsWrapper.scrollTop + logsWrapper.clientHeight >= logsWrapper.scrollHeight - 10
+        },
+
+        scrollToBottom() {
+            if (this.$refs.logsWrapper) {
+                this.$refs.logsWrapper.scrollTop = this.$refs.logsWrapper.scrollHeight
+            }
+        },
+
         // Subscribe to updates for a specific server
         subscribeToServer(serverName) {
             if (this.ws && this.ws.readyState === WebSocket.OPEN && serverName) {
@@ -119,6 +145,10 @@ document.addEventListener('alpine:init', () => {
 
             if (this.keyEvent.key === 'Escape') {
                 this.selectedServer = null
+            }
+
+            if (this.keyEvent.key === 'e') {
+                this.scrollToBottom()
             }
 
             if (this.keyEvent.key === 't' && this.selectedServer) {

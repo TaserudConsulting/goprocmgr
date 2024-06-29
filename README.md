@@ -44,11 +44,19 @@ through the same port, just with different domains (like `service1.local`).
 ## TODO
 
 - [X] Implement `direnv` support `direnv exec $dirname $command`.
-- [X] Implement keybind support in the web interface (`esc` to unselect server,
-      `t` to toggle server, `n` for next server, `p` for previous server).
-- [X] Implement an overview of the keybind in the web interface (press `h` to display popup).
+- [X] Implement keybind support in the web interface (`esc` to
+      unselect server, `t` to toggle server, `n` for next server, `p`
+      for previous server).
+- [X] Implement an overview of the keybind in the web interface (press
+      `h` to display popup).
 - [X] Refresh data and interface over websockets.
+- [X] Print logs in cronomological order in the web interface and stay
+      scrolled down. Also allow to disable the auto scroll and show a
+      button to scroll down if not scrolled down. Add keybind `e` to
+      scroll to end.
 - Improve the kill check for stopped processes.
 - Implement a dynamic favicon to include a number of running servers.
-- Implement parsing of terminal colors to display these in the web (and also terminate them at end of lines in CLI tail)
-- Implement a getting started overview in the web interface on the frontpage.
+- Implement parsing of terminal colors to display these in the web
+  (and also terminate them at end of lines in CLI tail)
+- Implement a getting started overview in the web interface on the
+  frontpage.

@@ -39,8 +39,8 @@
                     <div x-show="!selectedServer" id="frontpage" x-text="serverList.length === 0 ? 'No servers configured yet :&rpar;' : 'Select a server to view its logs :&rpar;'"></div>
                     <div x-show="selectedServer && !getServer(selectedServer)?.is_running" id="frontpage" x-text="'Server &ldquo;' + selectedServer + '&rdquo; is currently not started :&rpar;'"></div>
                     <div x-show="selectedServer && getServer(selectedServer)?.is_running">
-                        <ul id="logs-wrapper">
-                            <template x-for="line in serverLogs.slice().reverse()" :key="line.timestamp">
+                        <ul id="logs-wrapper" x-ref="logsWrapper" @scroll="checkScrollPosition">
+                            <template x-for="line in serverLogs" :key="line.timestamp">
                                 <li :class="{ 'stdout': line.output === 'stdout', 'stderr': line.output === 'stderr' }">
                                     <span x-text="formatTimestamp(line.timestamp)" class="timestamp"></span> |
                                     <span x-text="line.message" class="message"></span>
@@ -49,6 +49,9 @@
                         </ul>
                     </div>
                 </div>
+                <aside x-show="getServer(selectedServer)?.is_running && !autoScroll" id="scroll-to-bottom">
+                    <button @click="scrollToBottom()">&#8595;</button><!-- Arrow down symbol -->
+                </aside>
             </div>
 
             <!-- Popup for keybinds -->
@@ -58,6 +61,7 @@
                     <ul>
                         <li><strong>Esc</strong>: Deselect server</li>
                         <li><strong>t</strong>: Toggle server state</li>
+                        <li><strong>e</strong>: Scroll to end</li>
                         <li><strong>n</strong>: Select next server</li>
                         <li><strong>p</strong>: Select previous server</li>
                         <li><strong>h</strong>: Show this help popup</li>

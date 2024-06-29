@@ -10,6 +10,8 @@
     --nav-slider-fg-color: #ffffff;
     --nav-stderr-counter-color: #910000;
     --nav-stdout-counter-color: #015301;
+    --popup-button-bg-color: #007bff;
+    --popup-button-fg-color: #ffffff;
     --stderr-bg-color: #ffe5e5;
     --stdout-bg-color: #d5ffd5;
 }
@@ -204,6 +206,25 @@ body {
     transform: translateX(1.5rem);
 }
 
+#app aside#scroll-to-bottom {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+}
+
+#app aside#scroll-to-bottom button {
+    background: var(--popup-button-bg-color);
+    border-radius: 1.5rem;
+    border: 0;
+    color: var(--popup-button-fg-color);
+    font-size: 2rem;
+    font-weight: bolder;
+    height: 3rem;
+    margin-bottom: 1rem;
+    margin-right: 1rem;
+    width: 3rem;
+}
+
 #app div.popup {
     position: fixed;
     top: 0;
@@ -241,13 +262,13 @@ body {
 }
 
 #app div.popup div.popup-content button {
+    background: var(--popup-button-bg-color);
+    border-radius: 4px;
+    border: none;
+    color: var(--popup-button-fg-color);
+    cursor: pointer;
     margin-top: 20px;
     padding: 10px 20px;
-    border: none;
-    background: #007bff;
-    color: white;
-    border-radius: 4px;
-    cursor: pointer;
 }
 
 #app div.popup div.popup-content button:hover {
