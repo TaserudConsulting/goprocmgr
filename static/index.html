@@ -1,9 +1,9 @@
 <!DOCTYPE HTML>
 <html lang="en">
     <head>
-        <title>goprocmgr</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>goprocmgr</title>
         <link rel="stylesheet" type="text/css" href="/web/style.css">
         <link rel="icon" type="image/png" href="/web/favicon.png">
     </head>
@@ -18,7 +18,9 @@
                                 <template x-if="server.is_running">
                                     <a :href="`http://${window.location.hostname}:${server.port}`" target="_blank" x-text="server.name"></a>
                                 </template>
-                                <template x-if="!server.is_running"><span x-text="server.name"></span></template>
+                                <template x-if="!server.is_running">
+                                    <span x-text="server.name"></span>
+                                </template>
                                 <template x-if="server.is_running">
                                     <span class="log-item-count">
                                         (<span class="stdout" x-text="server.stdout_count"></span>/<span class="stderr" x-text="server.stderr_count"></span>)
@@ -35,7 +37,7 @@
                         <a href="https://github.com/TaserudConsulting/goprocmgr" target="_blank">GitHub</a>
                     </aside>
                 </nav>
-                <div id="content">
+                <main id="content">
                     <div x-show="!selectedServer" id="frontpage" x-text="serverList.length === 0 ? 'No servers configured yet :&rpar;' : 'Select a server to view its logs :&rpar;'"></div>
                     <div x-show="selectedServer && !getServer(selectedServer)?.is_running" id="frontpage" x-text="'Server &ldquo;' + selectedServer + '&rdquo; is currently not started :&rpar;'"></div>
                     <div x-show="selectedServer && getServer(selectedServer)?.is_running">
@@ -48,7 +50,7 @@
                             </template>
                         </ul>
                     </div>
-                </div>
+                </main>
                 <aside x-show="getServer(selectedServer)?.is_running && !autoScroll" id="scroll-to-bottom">
                     <button @click="scrollToBottom()">&#8595;</button><!-- Arrow down symbol -->
                 </aside>

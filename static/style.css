@@ -1,4 +1,4 @@
-/** Variables with colors */
+/* Variables with colors */
 :root {
     --main-bg-color: #ffffff;
     --main-border-color: #dfdfdf;
@@ -57,16 +57,16 @@ body {
     width: 100%;
 }
 
-#app nav#nav {
+#nav {
     background-color: var(--nav-bg-color);
     border-right: 0.1rem solid var(--main-border-color);
     display: flex;
-    flex-flow: column;
+    flex-direction: column;
     min-width: 22rem;
     width: 22rem;
 }
 
-#app nav#nav h1 {
+#nav h1 {
     border-bottom: 0.1rem solid var(--main-border-color);
     color: var(--main-fg-color);
     font-size: 1.5rem;
@@ -77,30 +77,30 @@ body {
     user-select: none;
 }
 
-#app nav#nav ul {
+.server-list {
     flex: 1;
     list-style-type: none;
     margin: 0;
-    overflow: scroll;
+    overflow: auto;
     padding: 0;
 }
 
-#app nav#nav ul li {
+.server-item {
     font-size: 1.1rem;
     line-height: 2.2rem;
     padding: 0.5rem;
     user-select: none;
 }
 
-#app nav#nav ul li a {
+.server-item a {
     color: var(--main-fg-color);
 }
 
-#app nav#nav ul li.selected {
+.server-item.selected {
     background-color: var(--nav-selected-color);
 }
 
-#app nav#nav aside.bottom-nav {
+.bottom-nav {
     border-top: 0.1rem solid var(--main-border-color);
     font-size: 1.25rem;
     font-weight: normal;
@@ -109,19 +109,19 @@ body {
     text-align: center;
 }
 
-#app nav#nav aside.bottom-nav a {
+.bottom-nav a {
     color: var(--main-fg-color);
 }
 
-#app div#content {
+#content {
     flex: 1;
 }
 
-#app div#content>div {
+#content>div {
     height: 100%;
 }
 
-#app div#content ul#logs-wrapper {
+#logs-wrapper {
     font-size: 0.8rem;
     height: 100%;
     list-style: none;
@@ -130,23 +130,23 @@ body {
     padding: 0;
 }
 
-#app div#content ul#logs-wrapper li {
+#logs-wrapper li {
     padding: 0.2rem 0.4rem;
 }
 
-#app div#content ul#logs-wrapper li span.timestamp {
-    font-weight: bold;
-}
-
-#app div#content ul#logs-wrapper li.stdout {
+#logs-wrapper .stdout {
     background-color: var(--stdout-bg-color);
 }
 
-#app div#content ul#logs-wrapper li.stderr {
+#logs-wrapper .stderr {
     background-color: var(--stderr-bg-color);
 }
 
-#app div#content div#frontpage {
+.timestamp {
+    font-weight: bold;
+}
+
+#frontpage {
     align-items: center;
     display: flex;
     font-size: 2.5rem;
@@ -156,32 +156,31 @@ body {
     text-align: center;
 }
 
-#app nav#nav ul li.server-item span.log-item-count {
+.log-item-count {
     font-size: 0.75rem;
     line-height: 1rem;
 }
 
-#app nav#nav ul li.server-item span.log-item-count span.stderr {
+.log-item-count .stderr {
     color: var(--nav-stderr-counter-color);
 }
 
-#app nav#nav ul li.server-item span.log-item-count span.stdout {
+.log-item-count .stdout {
     color: var(--nav-stdout-counter-color);
 }
 
-/* Nice toggle switch for input boxes */
-#app nav#nav ul li.server-item label.switch {
+.switch {
     float: right;
     height: 2rem;
     position: relative;
     width: 3.5rem;
 }
 
-#app nav#nav ul li.server-item label.switch input {
+.switch input {
     display: none;
 }
 
-#app nav#nav ul li.server-item label.switch div.slider {
+.slider {
     background-color: var(--nav-slider-bg-color);
     bottom: 0;
     cursor: pointer;
@@ -191,7 +190,7 @@ body {
     top: 0;
 }
 
-#app nav#nav ul li.server-item label.switch div.slider:before {
+.slider:before {
     background-color: var(--nav-slider-fg-color);
     bottom: 0.25rem;
     content: "";
@@ -201,21 +200,21 @@ body {
     width: 1.5rem;
 }
 
-#app nav#nav ul li.server-item label.switch input:checked+div.slider {
+input:checked+.slider {
     background-color: var(--nav-slider-active-bg-color);
 }
 
-#app nav#nav ul li.server-item label.switch input:checked+div.slider:before {
+input:checked+.slider:before {
     transform: translateX(1.5rem);
 }
 
-#app aside#scroll-to-bottom {
+#scroll-to-bottom {
     position: absolute;
     right: 0;
     bottom: 0;
 }
 
-#app aside#scroll-to-bottom button {
+#scroll-to-bottom button {
     background: var(--popup-button-bg-color);
     border-radius: 1.5rem;
     border: 0;
@@ -228,7 +227,7 @@ body {
     width: 3rem;
 }
 
-#app div.popup {
+.popup {
     position: fixed;
     top: 0;
     left: 0;
@@ -241,7 +240,7 @@ body {
     z-index: 1000;
 }
 
-#app div.popup div.popup-content {
+.popup-content {
     background: var(--main-bg-color);
     color: var(--main-fg-color);
     padding: 1rem;
@@ -251,20 +250,20 @@ body {
     width: 100%;
 }
 
-#app div.popup div.popup-content h2 {
+.popup-content h2 {
     margin-top: 0;
 }
 
-#app div.popup div.popup-content ul {
+.popup-content ul {
     list-style: none;
     padding: 0;
 }
 
-#app div.popup div.popup-content ul li {
+.popup-content li {
     line-height: 2rem;
 }
 
-#app div.popup div.popup-content button {
+.popup-content button {
     background: var(--popup-button-bg-color);
     border-radius: 0.25rem;
     border: none;
