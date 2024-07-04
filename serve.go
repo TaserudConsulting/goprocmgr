@@ -44,6 +44,10 @@ type ServeMessageResponse struct {
 	Message string `json:"message"`
 }
 
+type ServerSubscribeMessage struct {
+	Name string `json:"name"`
+}
+
 func NewServe(config *Config, runner *Runner) *Serve {
 	return &Serve{
 		config:              config,
@@ -254,23 +258,22 @@ func (serve *Serve) newRouter() *mux.Router {
 				}
 
 				// Parse the subscription message
-				var subscription map[string]string
+				var subscription ServerSubscribeMessage
 				if err := json.Unmarshal(message, &subscription); err != nil {
 					log.Println("Unmarshal:", err)
 					continue
 				}
 
-				if name, ok := subscription["name"]; ok {
-					serve.clientSubscriptions[conn] = name
+				serve.clientSubscriptions[conn] = subscription.Name
 
-					// Send initial state for the subscribed server
-					serverState := serve.GetServerLogs(name)
+				// Send initial state for the subscribed server
+				serverState := serve.GetServerLogs(subscription.Name)
 
-					// Only send logs if there are any
-					if len(serverState.Logs) > 0 {
-						serve.sendMessage(conn, serverState)
-					}
+				// Only send logs if there are any
+				if len(serverState.Logs) > 0 {
+					serve.sendMessage(conn, serverState)
 				}
+
 			}
 		}()
 
