@@ -36,11 +36,11 @@ func (runner *Runner) Start(name string, serve *Serve) error {
 	}
 
 	if _, ok := runner.config.Servers[name]; !ok {
-		return fmt.Errorf("Unknown server %s", name)
+		return fmt.Errorf("unknown server %s", name)
 	}
 
 	if _, ok := runner.ActiveProcesses[name]; ok {
-		return fmt.Errorf("Server is already running: %s", name)
+		return fmt.Errorf("server is already running: %s", name)
 	}
 
 	// Split the command on the first space since exec.Command will
@@ -101,18 +101,18 @@ func (runner *Runner) Start(name string, serve *Serve) error {
 	// Set up pipe to read stdout
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		return fmt.Errorf("Failed to set up stdout pipe: %s", err)
+		return fmt.Errorf("failed to set up stdout pipe: %s", err)
 	}
 
 	// Set up pipe to read stderr
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
-		return fmt.Errorf("Failed to set up stderr pipe: %s", err)
+		return fmt.Errorf("failed to set up stderr pipe: %s", err)
 	}
 
 	// Start the command
 	if err := cmd.Start(); err != nil {
-		return fmt.Errorf("Failed to start process: %s", err)
+		return fmt.Errorf("failed to start process: %s", err)
 	}
 
 	// Read stdout while the command is executed
@@ -158,7 +158,7 @@ func (runner *Runner) randomizePortNumber() (uint, error) {
 	portRangeSize := int(runner.config.Settings.PortRangeMax - runner.config.Settings.PortRangeMin)
 
 	if len(runner.ActiveProcesses) >= portRangeSize {
-		return 0, fmt.Errorf("Out of ports, won't be able to find a port in configured range")
+		return 0, fmt.Errorf("out of ports, won't be able to find a port in configured range")
 	}
 
 	// Randomize ports within the range
@@ -181,7 +181,7 @@ func (runner *Runner) randomizePortNumber() (uint, error) {
 		}
 	}
 
-	return 0, fmt.Errorf("Tried to randomize an unused port, failed")
+	return 0, fmt.Errorf("tried to randomize an unused port, failed")
 }
 
 func (runner *Runner) Stop(name string, serve *Serve) error {

@@ -277,35 +277,32 @@ func (serve *Serve) newRouter() *mux.Router {
 		// Store last send time to avoid sending too many messages per second
 		var lastSend int64
 
-		for {
-			select {
-			case <-serve.stateChange:
-				// Limit the amount of messages sent per second to send at most every 100ms
-				// to avoid flooding the client with messages.
-				if ((time.Now().UnixNano() / int64(time.Millisecond)) - 100) < lastSend {
+		for range serve.stateChange {
+			// Limit the amount of messages sent per second to send at most every 100ms
+			// to avoid flooding the client with messages.
+			if ((time.Now().UnixNano() / int64(time.Millisecond)) - 100) < lastSend {
+				continue
+			}
+
+			// Store the last send time
+			lastSend = time.Now().UnixNano() / int64(time.Millisecond)
+
+			for client, name := range serve.clientSubscriptions {
+				// Send the list state regardless of subscription
+				listState := serve.GetServerList()
+				serve.sendMessage(client, listState)
+
+				// Skip clients with no subscription
+				if name == "" {
 					continue
 				}
 
-				// Store the last send time
-				lastSend = time.Now().UnixNano() / int64(time.Millisecond)
+				// Send state for the subscribed server
+				serverState := serve.GetServerLogs(name)
 
-				for client, name := range serve.clientSubscriptions {
-					// Send the list state regardless of subscription
-					listState := serve.GetServerList()
-					serve.sendMessage(client, listState)
-
-					// Skip clients with no subscription
-					if name == "" {
-						continue
-					}
-
-					// Send state for the subscribed server
-					serverState := serve.GetServerLogs(name)
-
-					// Only send logs if there are any
-					if len(serverState.Logs) > 0 {
-						serve.sendMessage(client, serverState)
-					}
+				// Only send logs if there are any
+				if len(serverState.Logs) > 0 {
+					serve.sendMessage(client, serverState)
 				}
 			}
 		}
@@ -319,7 +316,7 @@ func (serve *Serve) GetServer(name string) (ServerItem, error) {
 
 	// Check if name is a valid entry in serve.config.Servers, if
 	// it isn't, return error.
-	if _, ok := serve.config.Servers[name]; ok == false {
+	if _, ok := serve.config.Servers[name]; !ok {
 		return serverItem, errors.New("Undefined server requested '" + name + "'")
 	}
 
@@ -369,7 +366,7 @@ func (serve *Serve) GetServerLogs(name string) ServerItemWithLogs {
 
 	serverItemWithLogs.ServerItem, _ = serve.GetServer(name)
 
-	if serverItemWithLogs.ServerItem.IsRunning == true {
+	if serverItemWithLogs.ServerItem.IsRunning {
 		serverItemWithLogs.Logs = serve.runner.ActiveProcesses[name].Logs
 	}
 

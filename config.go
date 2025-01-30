@@ -68,15 +68,15 @@ func (config *Config) Save() {
 
 func (config *Config) WriteServer(server ServerConfig) error {
 	if len(server.Name) == 0 {
-		return fmt.Errorf("Server 'name' cannot be empty")
+		return fmt.Errorf("server 'name' cannot be empty")
 	}
 
 	if len(server.Directory) == 0 {
-		return fmt.Errorf("Server 'cwd' cannot be empty")
+		return fmt.Errorf("server 'cwd' cannot be empty")
 	}
 
 	if len(server.Command) == 0 {
-		return fmt.Errorf("Server 'cmd' cannot be empty")
+		return fmt.Errorf("server 'cmd' cannot be empty")
 	}
 
 	// Store the sent server config to the config.
