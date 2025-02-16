@@ -36,7 +36,8 @@ func main() {
 	}
 
 	runner := Runner{config: &config}
-	serve := NewServe(&config, &runner)
+	services := Services{config: &config}
+	serve := NewServe(&config, &runner, &services)
 	cli := Cli{config: &config}
 
 	config.Read(configFile)

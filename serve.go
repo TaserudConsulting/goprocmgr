@@ -18,6 +18,7 @@ import (
 type Serve struct {
 	config              *Config
 	runner              *Runner
+	services            *Services
 	stateChange         chan bool                       // Channel to signal a state change
 	clientSubscriptions map[*websocket.Conn]string      // Map of client connections and their subscriptions
 	clientLocks         map[*websocket.Conn]*sync.Mutex // Map of locks for each client connection to not send multiple messages at once
@@ -44,10 +45,11 @@ type ServeMessageResponse struct {
 	Message string `json:"message"`
 }
 
-func NewServe(config *Config, runner *Runner) *Serve {
+func NewServe(config *Config, runner *Runner, services *Services) *Serve {
 	return &Serve{
 		config:              config,
 		runner:              runner,
+		services:            services,
 		stateChange:         make(chan bool),
 		clientSubscriptions: make(map[*websocket.Conn]string),
 		clientLocks:         make(map[*websocket.Conn]*sync.Mutex),
@@ -169,6 +171,12 @@ func (serve *Serve) newRouter() *mux.Router {
 	router.HandleFunc("/api/runner/{name}", func(w http.ResponseWriter, r *http.Request) {
 		var resp ServeMessageResponse
 		vars := mux.Vars(r)
+
+		// Trigger the service start
+		err2 := serve.services.Start(vars["name"])
+		if err2 != nil {
+			fmt.Println(err2)
+		}
 
 		err := serve.runner.Start(vars["name"], serve)
 
