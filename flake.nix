@@ -59,7 +59,7 @@
       };
 
       checks = flake-utils.lib.flattenTree {
-        default = pkgs.nixosTest {
+        default = pkgs.testers.nixosTest {
           name = "goprocmgr-integration-test";
           nodes.machine = {
             config,
