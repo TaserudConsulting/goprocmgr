@@ -1,5 +1,5 @@
-[![Check](https://github.com/TaserudConsulting/goprocmgr/actions/workflows/check.yml/badge.svg)](https://github.com/TaserudConsulting/goprocmgr/actions/workflows/check.yml)
-[![Update](https://github.com/TaserudConsulting/goprocmgr/actions/workflows/update.yml/badge.svg)](https://github.com/TaserudConsulting/goprocmgr/actions/workflows/update.yml)
+[![Check](https://github.com/etu/goprocmgr/actions/workflows/check.yml/badge.svg)](https://github.com/etu/goprocmgr/actions/workflows/check.yml)
+[![Update](https://github.com/etu/goprocmgr/actions/workflows/update.yml/badge.svg)](https://github.com/etu/goprocmgr/actions/workflows/update.yml)
 
 # goprocmgr
 

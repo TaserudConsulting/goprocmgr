@@ -13,7 +13,7 @@
 #             retrieve the configuration. It also provides a CLI
 #             client for interacting with the API.
 #
-# https://github.com/TaserudConsulting/goprocmgr
+# https://github.com/etu/goprocmgr
 ######################################################################
 
 # Main completion function

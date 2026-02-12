@@ -1,4 +1,4 @@
-package main // import "github.com/TaserudConsulting/goprocmgr"
+package main // import "github.com/etu/goprocmgr"
 
 import (
 	"embed"
