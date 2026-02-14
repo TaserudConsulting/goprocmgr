@@ -284,7 +284,13 @@ func (serve *Serve) newRouter() *mux.Router {
 
 				// Only send logs if there are any
 				if len(serverState.Logs) > 0 {
-					serve.sendMessage(conn, serverState)
+					// Calculate new offset before sending
+					newOffset := serverState.Offset + uint(len(serverState.Logs))
+					
+					// Only update offset if send was successful
+					if serve.sendMessageAndUpdateOffset(conn, serverState, newOffset) {
+						serve.clientOffsets[conn] = newOffset
+					}
 				}
 
 			}

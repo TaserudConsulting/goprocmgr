@@ -82,7 +82,13 @@ document.addEventListener('alpine:init', () => {
                 } else if (data.server && data.logs !== undefined) {
                     // Specific server update with pagination
                     // Append new logs to existing logs efficiently
-                    this.serverLogs.push(...data.logs)
+                    // Add unique IDs to each log entry for proper rendering
+                    // Use the offset from the server response as the base for IDs
+                    const logsWithIds = data.logs.map((log, idx) => ({
+                        ...log,
+                        _id: `${data.offset + idx}`
+                    }))
+                    this.serverLogs.push(...logsWithIds)
                     // Update our offset to match what we've received
                     this.serverLogsOffset = data.offset + data.logs.length
                 }
