@@ -81,8 +81,8 @@ document.addEventListener('alpine:init', () => {
                     }
                 } else if (data.server && data.logs !== undefined) {
                     // Specific server update with pagination
-                    // Append new logs to existing logs
-                    this.serverLogs = this.serverLogs.concat(data.logs)
+                    // Append new logs to existing logs efficiently
+                    this.serverLogs.push(...data.logs)
                     // Update our offset to match what we've received
                     this.serverLogsOffset = data.offset + data.logs.length
                 }

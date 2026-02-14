@@ -15,6 +15,11 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+const (
+	// Maximum number of log entries to send per WebSocket message to prevent timeouts
+	maxLogsPerRequest = 1000
+)
+
 type Serve struct {
 	config              *Config
 	runner              *Runner
@@ -316,9 +321,13 @@ func (serve *Serve) newRouter() *mux.Router {
 
 				// Only send logs if there are any new ones
 				if len(serverState.Logs) > 0 {
-					serve.sendMessage(client, serverState)
-					// Update the client's offset to the end of what we just sent
-					serve.clientOffsets[client] = serverState.Offset + uint(len(serverState.Logs))
+					// Calculate new offset before sending
+					newOffset := serverState.Offset + uint(len(serverState.Logs))
+					
+					// Only update offset if send was successful
+					if serve.sendMessageAndUpdateOffset(client, serverState, newOffset) {
+						serve.clientOffsets[client] = newOffset
+					}
 				}
 			}
 		}
@@ -391,8 +400,7 @@ func (serve *Serve) GetServerLogsWithOffset(name string, offset uint) ServerItem
 		allLogs := serve.runner.ActiveProcesses[name].Logs
 		serverItemWithLogs.TotalCount = uint(len(allLogs))
 
-		// Return logs starting from offset, with a maximum of 1000 logs per request
-		const maxLogsPerRequest = 1000
+		// Return logs starting from offset, with a maximum limit per request
 		if offset < uint(len(allLogs)) {
 			endIndex := offset + maxLogsPerRequest
 			if endIndex > uint(len(allLogs)) {
@@ -428,4 +436,27 @@ func (serve *Serve) sendMessage(client *websocket.Conn, data interface{}) {
 		delete(serve.clientOffsets, client)
 		delete(serve.clientLocks, client)
 	}
+}
+
+// Send a message and update offset only if successful
+func (serve *Serve) sendMessageAndUpdateOffset(client *websocket.Conn, data interface{}, newOffset uint) bool {
+	message, err := json.Marshal(data)
+	if err != nil {
+		log.Println("Marshal:", err)
+		return false
+	}
+
+	serve.clientLocks[client].Lock()
+	defer serve.clientLocks[client].Unlock()
+
+	if err := client.WriteMessage(websocket.TextMessage, message); err != nil {
+		log.Println("WriteMessage:", err)
+		client.Close()
+		delete(serve.clientSubscriptions, client)
+		delete(serve.clientOffsets, client)
+		delete(serve.clientLocks, client)
+		return false
+	}
+	
+	return true
 }
