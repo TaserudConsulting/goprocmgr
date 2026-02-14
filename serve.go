@@ -391,9 +391,14 @@ func (serve *Serve) GetServerLogsWithOffset(name string, offset uint) ServerItem
 		allLogs := serve.runner.ActiveProcesses[name].Logs
 		serverItemWithLogs.TotalCount = uint(len(allLogs))
 
-		// Return logs starting from offset
+		// Return logs starting from offset, with a maximum of 1000 logs per request
+		const maxLogsPerRequest = 1000
 		if offset < uint(len(allLogs)) {
-			serverItemWithLogs.Logs = allLogs[offset:]
+			endIndex := offset + maxLogsPerRequest
+			if endIndex > uint(len(allLogs)) {
+				endIndex = uint(len(allLogs))
+			}
+			serverItemWithLogs.Logs = allLogs[offset:endIndex]
 		} else {
 			serverItemWithLogs.Logs = []LogEntry{}
 		}
