@@ -20,6 +20,7 @@ type Serve struct {
 	runner              *Runner
 	stateChange         chan bool                       // Channel to signal a state change
 	clientSubscriptions map[*websocket.Conn]string      // Map of client connections and their subscriptions
+	clientOffsets       map[*websocket.Conn]uint        // Map of client offsets for pagination
 	clientLocks         map[*websocket.Conn]*sync.Mutex // Map of locks for each client connection to not send multiple messages at once
 }
 
@@ -34,6 +35,8 @@ type ServerItem struct {
 type ServerItemWithLogs struct {
 	ServerItem ServerItem `json:"server"`
 	Logs       []LogEntry `json:"logs"`
+	Offset     uint       `json:"offset"`
+	TotalCount uint       `json:"total_count"`
 }
 
 type ServerItemList struct {
@@ -44,12 +47,18 @@ type ServeMessageResponse struct {
 	Message string `json:"message"`
 }
 
+type ServerSubscribeMessage struct {
+	Name   string `json:"name"`
+	Offset uint   `json:"offset"`
+}
+
 func NewServe(config *Config, runner *Runner) *Serve {
 	return &Serve{
 		config:              config,
 		runner:              runner,
 		stateChange:         make(chan bool),
 		clientSubscriptions: make(map[*websocket.Conn]string),
+		clientOffsets:       make(map[*websocket.Conn]uint),
 		clientLocks:         make(map[*websocket.Conn]*sync.Mutex),
 	}
 }
@@ -233,12 +242,14 @@ func (serve *Serve) newRouter() *mux.Router {
 		defer conn.Close()
 
 		serve.clientSubscriptions[conn] = ""    // Initialize with no subscription
+		serve.clientOffsets[conn] = 0           // Initialize offset to 0
 		serve.clientLocks[conn] = &sync.Mutex{} // Initialize mutex for this connection
 
 		go func() {
 			defer func() {
 				conn.Close()
 				delete(serve.clientSubscriptions, conn)
+				delete(serve.clientOffsets, conn)
 				delete(serve.clientLocks, conn) // Remove mutex for this connection
 			}()
 
@@ -254,23 +265,23 @@ func (serve *Serve) newRouter() *mux.Router {
 				}
 
 				// Parse the subscription message
-				var subscription map[string]string
+				var subscription ServerSubscribeMessage
 				if err := json.Unmarshal(message, &subscription); err != nil {
 					log.Println("Unmarshal:", err)
 					continue
 				}
 
-				if name, ok := subscription["name"]; ok {
-					serve.clientSubscriptions[conn] = name
+				serve.clientSubscriptions[conn] = subscription.Name
+				serve.clientOffsets[conn] = subscription.Offset
 
-					// Send initial state for the subscribed server
-					serverState := serve.GetServerLogs(name)
+				// Send initial state for the subscribed server
+				serverState := serve.GetServerLogsWithOffset(subscription.Name, subscription.Offset)
 
-					// Only send logs if there are any
-					if len(serverState.Logs) > 0 {
-						serve.sendMessage(conn, serverState)
-					}
+				// Only send logs if there are any
+				if len(serverState.Logs) > 0 {
+					serve.sendMessage(conn, serverState)
 				}
+
 			}
 		}()
 
@@ -297,12 +308,17 @@ func (serve *Serve) newRouter() *mux.Router {
 					continue
 				}
 
-				// Send state for the subscribed server
-				serverState := serve.GetServerLogs(name)
+				// Get the current offset for this client
+				offset := serve.clientOffsets[client]
 
-				// Only send logs if there are any
+				// Send state for the subscribed server starting from the offset
+				serverState := serve.GetServerLogsWithOffset(name, offset)
+
+				// Only send logs if there are any new ones
 				if len(serverState.Logs) > 0 {
 					serve.sendMessage(client, serverState)
+					// Update the client's offset to the end of what we just sent
+					serve.clientOffsets[client] = serverState.Offset + uint(len(serverState.Logs))
 				}
 			}
 		}
@@ -362,12 +378,28 @@ func (serve *Serve) GetServerList() ServerItemList {
 }
 
 func (serve *Serve) GetServerLogs(name string) ServerItemWithLogs {
+	return serve.GetServerLogsWithOffset(name, 0)
+}
+
+func (serve *Serve) GetServerLogsWithOffset(name string, offset uint) ServerItemWithLogs {
 	var serverItemWithLogs ServerItemWithLogs
 
 	serverItemWithLogs.ServerItem, _ = serve.GetServer(name)
+	serverItemWithLogs.Offset = offset
 
 	if serverItemWithLogs.ServerItem.IsRunning {
-		serverItemWithLogs.Logs = serve.runner.ActiveProcesses[name].Logs
+		allLogs := serve.runner.ActiveProcesses[name].Logs
+		serverItemWithLogs.TotalCount = uint(len(allLogs))
+
+		// Return logs starting from offset
+		if offset < uint(len(allLogs)) {
+			serverItemWithLogs.Logs = allLogs[offset:]
+		} else {
+			serverItemWithLogs.Logs = []LogEntry{}
+		}
+	} else {
+		serverItemWithLogs.TotalCount = 0
+		serverItemWithLogs.Logs = []LogEntry{}
 	}
 
 	return serverItemWithLogs
@@ -388,6 +420,7 @@ func (serve *Serve) sendMessage(client *websocket.Conn, data interface{}) {
 		log.Println("WriteMessage:", err)
 		client.Close()
 		delete(serve.clientSubscriptions, client)
+		delete(serve.clientOffsets, client)
 		delete(serve.clientLocks, client)
 	}
 }

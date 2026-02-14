@@ -5,6 +5,7 @@ document.addEventListener('alpine:init', () => {
         // Application state
         serverList: [],
         serverLogs: [],
+        serverLogsOffset: 0, // Track the current offset for pagination
 
         // The selected server, this is used to show the logs for a specific server.
         selectedServer: localStorage.getItem('selectedServer') === 'null' ? null : localStorage.getItem('selectedServer') || null,
@@ -38,6 +39,7 @@ document.addEventListener('alpine:init', () => {
             this.$watch('selectedServer', (value) => {
                 localStorage.setItem('selectedServer', value)
                 this.serverLogs = []
+                this.serverLogsOffset = 0 // Reset offset when changing servers
                 this.subscribeToServer(value)
                 this.scrollServerItemIntoViewIfNeeded(value)
             })
@@ -77,9 +79,12 @@ document.addEventListener('alpine:init', () => {
                     if (this.selectedServer) {
                         this.scrollServerItemIntoViewIfNeeded(this.selectedServer)
                     }
-                } else if (data.server && data.logs) {
-                    // Specific server update
-                    this.serverLogs = data.logs
+                } else if (data.server && data.logs !== undefined) {
+                    // Specific server update with pagination
+                    // Append new logs to existing logs
+                    this.serverLogs = this.serverLogs.concat(data.logs)
+                    // Update our offset to match what we've received
+                    this.serverLogsOffset = data.offset + data.logs.length
                 }
             }
 
@@ -90,6 +95,7 @@ document.addEventListener('alpine:init', () => {
                 this.ws = null
                 this.serverList = []
                 this.serverLogs = []
+                this.serverLogsOffset = 0 // Reset offset on reconnect
 
                 setTimeout(() => {
                     this.setupWebSocket()
@@ -127,7 +133,7 @@ document.addEventListener('alpine:init', () => {
         // Subscribe to updates for a specific server
         subscribeToServer(serverName) {
             if (this.ws && this.ws.readyState === WebSocket.OPEN && serverName) {
-                this.ws.send(JSON.stringify({ name: serverName }))
+                this.ws.send(JSON.stringify({ name: serverName, offset: this.serverLogsOffset }))
             }
         },
 
