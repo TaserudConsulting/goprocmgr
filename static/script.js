@@ -6,6 +6,8 @@ document.addEventListener('alpine:init', () => {
         serverList: [],
         serverLogs: [],
         serverLogsOffset: 0, // Track the current offset for pagination
+        previousStdoutCount: 0, // Track previous stdout count for restart detection
+        previousStderrCount: 0, // Track previous stderr count for restart detection
 
         // The selected server, this is used to show the logs for a specific server.
         selectedServer: localStorage.getItem('selectedServer') === 'null' ? null : localStorage.getItem('selectedServer') || null,
@@ -40,6 +42,8 @@ document.addEventListener('alpine:init', () => {
                 localStorage.setItem('selectedServer', value)
                 this.serverLogs = []
                 this.serverLogsOffset = 0 // Reset offset when changing servers
+                this.previousStdoutCount = 0 // Reset count tracking when changing servers
+                this.previousStderrCount = 0 // Reset count tracking when changing servers
                 this.subscribeToServer(value)
                 this.scrollServerItemIntoViewIfNeeded(value)
             })
@@ -83,14 +87,26 @@ document.addEventListener('alpine:init', () => {
                     // Specific server update with pagination
                     
                     // Check if server was restarted (logs were cleared on server side)
-                    // This happens when total_count is less than our current offset
-                    // or when we receive offset 0 with logs while we already have logs
+                    // This happens when:
+                    // 1. total_count is less than our current offset
+                    // 2. we receive offset 0 with logs while we already have logs
+                    // 3. stdout_count or stderr_count decreased from previous value
+                    const currentStdoutCount = data.server.stdout_count || 0
+                    const currentStderrCount = data.server.stderr_count || 0
+                    const stdoutDecreased = this.previousStdoutCount > 0 && currentStdoutCount < this.previousStdoutCount
+                    const stderrDecreased = this.previousStderrCount > 0 && currentStderrCount < this.previousStderrCount
+                    
                     if (data.total_count < this.serverLogsOffset || 
-                        (data.offset === 0 && this.serverLogs.length > 0 && data.logs.length > 0)) {
+                        (data.offset === 0 && this.serverLogs.length > 0 && data.logs.length > 0) ||
+                        stdoutDecreased || stderrDecreased) {
                         // Server was restarted, clear client logs and reset offset
                         this.serverLogs = []
                         this.serverLogsOffset = 0
                     }
+                    
+                    // Update previous counts for next comparison
+                    this.previousStdoutCount = currentStdoutCount
+                    this.previousStderrCount = currentStderrCount
                     
                     // Append new logs to existing logs efficiently
                     // Add unique IDs to each log entry for proper rendering
@@ -113,6 +129,8 @@ document.addEventListener('alpine:init', () => {
                 this.serverList = []
                 this.serverLogs = []
                 this.serverLogsOffset = 0 // Reset offset on reconnect
+                this.previousStdoutCount = 0 // Reset count tracking on reconnect
+                this.previousStderrCount = 0 // Reset count tracking on reconnect
 
                 setTimeout(() => {
                     this.setupWebSocket()
