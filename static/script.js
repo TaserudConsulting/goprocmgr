@@ -81,6 +81,17 @@ document.addEventListener('alpine:init', () => {
                     }
                 } else if (data.server && data.logs !== undefined) {
                     // Specific server update with pagination
+                    
+                    // Check if server was restarted (logs were cleared on server side)
+                    // This happens when total_count is less than our current offset
+                    // or when we receive offset 0 with logs while we already have logs
+                    if (data.total_count < this.serverLogsOffset || 
+                        (data.offset === 0 && this.serverLogs.length > 0 && data.logs.length > 0)) {
+                        // Server was restarted, clear client logs and reset offset
+                        this.serverLogs = []
+                        this.serverLogsOffset = 0
+                    }
+                    
                     // Append new logs to existing logs efficiently
                     // Add unique IDs to each log entry for proper rendering
                     // Use the offset from the server response as the base for IDs
