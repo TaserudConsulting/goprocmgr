@@ -42,7 +42,7 @@
                     <div x-show="selectedServer && !getServer(selectedServer)?.is_running" id="frontpage" x-text="'Server &ldquo;' + selectedServer + '&rdquo; is currently not started :&rpar;'"></div>
                     <div x-show="selectedServer && getServer(selectedServer)?.is_running">
                         <ul id="logs-wrapper" x-ref="logsWrapper" @scroll="checkScrollPosition">
-                            <template x-for="line in serverLogs" :key="line.timestamp">
+                            <template x-for="line in serverLogs" :key="line._id">
                                 <li :class="{ 'stdout': line.output === 'stdout', 'stderr': line.output === 'stderr' }">
                                     <span x-text="formatTimestamp(line.timestamp)" class="timestamp"></span> |
                                     <span x-text="line.message" class="message"></span>

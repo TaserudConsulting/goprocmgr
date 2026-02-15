@@ -291,7 +291,7 @@ func (cli *Cli) Stop(name string) {
 }
 
 func (cli *Cli) Logs(name string) {
-	var logsMaxIndex int = -1
+	var currentOffset uint = 0
 
 	// Build URL to establish websocket connection
 	wsUrl := fmt.Sprintf("ws://%s:%d/api/ws", cli.config.Settings.ListenAddress, cli.config.Settings.ListenPort)
@@ -304,8 +304,8 @@ func (cli *Cli) Logs(name string) {
 	}
 	defer conn.Close()
 
-	// Send subscription message for the specific server
-	subscription := map[string]string{"name": name}
+	// Send subscription message for the specific server with offset
+	subscription := map[string]interface{}{"name": name, "offset": currentOffset}
 	subMsg, err := json.Marshal(subscription)
 	if err != nil {
 		log.Printf("Failed to marshal subscription message: %s\n", err)
@@ -339,17 +339,18 @@ func (cli *Cli) Logs(name string) {
 			continue
 		}
 
-		// Process the logs
-		for key, val := range serverLogs.Logs {
-			if key > logsMaxIndex {
-				if val.Output == "stdout" {
-					fmt.Println(val.Output, val.Timestamp.Format("15:04:05"), "|", val.Message)
-				} else {
-					fmt.Fprintln(os.Stderr, val.Output, val.Timestamp.Format("15:04:05"), "|", val.Message)
-				}
-
-				logsMaxIndex = key
+		// Print all logs received in this batch
+		for _, val := range serverLogs.Logs {
+			if val.Output == "stdout" {
+				fmt.Println(val.Output, val.Timestamp.Format("15:04:05"), "|", val.Message)
+			} else {
+				fmt.Fprintln(os.Stderr, val.Output, val.Timestamp.Format("15:04:05"), "|", val.Message)
 			}
+		}
+
+		// Update offset for next batch
+		if len(serverLogs.Logs) > 0 {
+			currentOffset = serverLogs.Offset + uint(len(serverLogs.Logs))
 		}
 	}
 }
