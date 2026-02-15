@@ -325,15 +325,13 @@ func (serve *Serve) newRouter() *mux.Router {
 				// Send state for the subscribed server starting from the offset
 				serverState := serve.GetServerLogsWithOffset(name, offset)
 
-				// Only send logs if there are any new ones
-				if len(serverState.Logs) > 0 {
-					// Calculate new offset before sending
-					newOffset := serverState.Offset + uint(len(serverState.Logs))
-					
-					// Only update offset if send was successful
-					if serve.sendMessageAndUpdateOffset(client, serverState, newOffset) {
-						serve.clientOffsets[client] = newOffset
-					}
+				// Send state even if no new logs, so client can detect server stop/restart
+				// Calculate new offset before sending
+				newOffset := serverState.Offset + uint(len(serverState.Logs))
+				
+				// Only update offset if send was successful
+				if serve.sendMessageAndUpdateOffset(client, serverState, newOffset) {
+					serve.clientOffsets[client] = newOffset
 				}
 			}
 		}

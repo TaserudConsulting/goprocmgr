@@ -91,15 +91,17 @@ document.addEventListener('alpine:init', () => {
                     // 1. total_count is less than our current offset
                     // 2. we receive offset 0 with logs while we already have logs
                     // 3. stdout_count or stderr_count decreased from previous value
+                    // 4. both counts went to 0 (server stopped) and we have existing logs
                     const currentStdoutCount = data.server.stdout_count || 0
                     const currentStderrCount = data.server.stderr_count || 0
                     const stdoutDecreased = this.previousStdoutCount > 0 && currentStdoutCount < this.previousStdoutCount
                     const stderrDecreased = this.previousStderrCount > 0 && currentStderrCount < this.previousStderrCount
+                    const serverStopped = currentStdoutCount === 0 && currentStderrCount === 0 && this.serverLogs.length > 0
                     
                     if (data.total_count < this.serverLogsOffset || 
                         (data.offset === 0 && this.serverLogs.length > 0 && data.logs.length > 0) ||
-                        stdoutDecreased || stderrDecreased) {
-                        // Server was restarted, clear client logs and reset offset
+                        stdoutDecreased || stderrDecreased || serverStopped) {
+                        // Server was restarted or stopped, clear client logs and reset offset
                         this.serverLogs = []
                         this.serverLogsOffset = 0
                     }
