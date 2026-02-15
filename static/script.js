@@ -104,6 +104,8 @@ document.addEventListener('alpine:init', () => {
                         // Server was restarted or stopped, clear client logs and reset offset
                         this.serverLogs = []
                         this.serverLogsOffset = 0
+                        // Re-subscribe with offset 0 to reset server's tracking
+                        this.subscribeToServer(data.server.name)
                     }
                     
                     // Update previous counts for next comparison
